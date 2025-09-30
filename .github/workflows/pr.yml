@@ -29,4 +29,6 @@ jobs:
 
       # Run mypy (type checker)
       - name: Run mypy
-        run: mypy ./src/azurepg_entra/psycopg2/psycopg2_entra_id_extension.py
+        run: |
+          cd python
+          mypy ./src/azurepg_entra/psycopg2/psycopg2_entra_id_extension.py
