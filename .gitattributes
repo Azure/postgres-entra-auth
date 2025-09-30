@@ -1,0 +1,41 @@
+# 1) Normalize line endings consistently
+#    Stores LF in the repo; converts to your OS line endings in the working tree as needed.
+* text=auto
+
+# Scripts are safest with LF (important on Linux/macOS)
+*.sh         text eol=lf
+*.bash       text eol=lf
+*.yaml       text eol=lf
+*.yml        text eol=lf
+*.json       text eol=lf
+*.md         text eol=lf
+*.tf         text eol=lf
+
+# Likewise, force cmd and batch scripts to always use crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 2) Treat common binary files as binary (no line-ending changes, no text diffs)
+#    'binary' implies -text -diff
+*.png        binary
+*.jpg        binary
+*.jpeg       binary
+*.gif        binary
+*.webp       binary
+*.ico        binary
+*.pdf        binary
+*.zip        binary
+*.7z         binary
+*.gz         binary
+*.rar        binary
+*.tar        binary
+*.tar.gz     binary
+*.ttf        binary
+*.otf        binary
+*.woff       binary
+*.woff2      binary
+*.psd        binary
+*.ai         binary
+
+# 3) Configuration & lock files as plain text (default), but you may choose stricter merging later
+*.lock       text

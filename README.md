@@ -1,33 +1,66 @@
-# Project
+# Entra ID Token Refresh Library
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+**Leverage cross-language libraries for seamless token refresh in Entra ID–authenticated applications.**
 
-As the maintainer of this project, please make a few updates:
+## What is Entra ID?
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+Entra ID (formerly Azure Active Directory) is a widely adopted identity platform for securing access to cloud applications and services. It uses a token-based authentication mechanism involving access tokens and refresh tokens to manage secure connections.
 
-## Contributing
+This open-source project provides libraries in Python, Java, C#, and JavaScript to automatically handle token expiration and refresh, ensuring uninterrupted connectivity to services like Azure Database for PostgreSQL Flexible Server.
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit [Contributor License Agreements](https://cla.opensource.microsoft.com).
+## Key Features
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+- **Token Validation**: Token validation before use and acquisition of new token if current token is invalid
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+- **Connection Pool Integration**: Token validation extends to new connections being created for connection pool
 
-## Trademarks
+- **Plug-in ecosystem**: Pluggable architecture for different languages and frameworks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
-trademarks or logos is subject to and must follow
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+## Supported Languages
+
+- Python
+- Java
+- C#
+- JavaScript
+
+## Project Structure
+
+This repository is organized by programming language, with each language having its own dedicated folder:
+
+```
+├── dotnet/         # .NET implementation
+│   ├── src/        # Source code
+│   ├── samples/    # Code samples and examples
+│   ├── tests/      # Unit tests
+│   └── README.md   # .NET-specific documentation
+├── python/         # Python implementation
+│   ├── src/        # Source code
+│   ├── samples/    # Code samples and examples
+│   ├── tests/      # Unit tests
+│   └── README.md   # Python-specific documentation
+├── java/           # Java implementation
+│   ├── src/        # Source code
+│   ├── samples/    # Code samples and examples
+│   ├── tests/      # Unit tests
+│   └── docs/       # Java-specific documentation
+└── javascript/     # JavaScript implementation
+    ├── src/        # Source code
+    ├── samples/    # Code samples and examples
+    ├── tests/      # Unit tests
+    └── docs/       # JavaScript-specific documentation
+```
+
+**Getting Started**: Navigate to the folder for your preferred programming language to find source code, usage examples, and language-specific documentation.
+
+## Code of Conduct
+
+This project has adopted the
+[Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information, see the
+[Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
+or contact [opencode@microsoft.com](mailto:opencode@microsoft.com)
+with any additional questions or comments.
+
+## License
+
+This project is licensed under the MIT License.

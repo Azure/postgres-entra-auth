@@ -1,0 +1,61 @@
+root = true
+
+[*]
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C# files
+[*.cs]
+indent_style = space
+indent_size = 4
+max_line_length = 130
+
+# XML project files
+[*.{csproj,vbproj,vcxproj,proj,projitems,shproj,props,targets,config,nuspec,resx}]
+indent_style = space
+indent_size = 2
+
+# JSON and Markdown
+[*.{json,md}]
+indent_style = space
+indent_size = 2
+
+# YAML files
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# JavaScript/TypeScript
+[*.{js,ts,jsx,tsx}]
+indent_style = space
+indent_size = 2
+
+# Python
+[*.py]
+indent_style = space
+indent_size = 4
+
+# Shell scripts
+[*.sh]
+indent_style = space
+indent_size = 2
+
+# Basic C# style preferences (only the most important ones)
+[*.cs]
+# Use language keywords instead of BCL types
+dotnet_style_predefined_type_for_locals_parameters_members = true:error
+dotnet_style_predefined_type_for_member_access = true:error
+
+# Prefer explicit accessibility modifiers
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
+
+# Pattern matching preferences
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+
+# New line preferences
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
