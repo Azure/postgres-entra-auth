@@ -101,7 +101,7 @@ class EverlastingProgram
 
     static async Task RunDatabaseQueries(NpgsqlConnection connection)
     {
-        Console.WriteLine("Running queries every 2 minutes for 15 minutes...");
+        Console.WriteLine("Running queries indefinitely every 2 minutes...Press Ctrl+C to stop.");
         var i = 0;
 
         while (true)
