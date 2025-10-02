@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+    <LangVersion>default</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>1591;1573</NoWarn>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package info">
+    <Authors>Arjun Narendra</Authors>
+    <PackageDescription>
+      Azure Entra ID authentication extension for Npgsql PostgreSQL driver
+    </PackageDescription>
+    <RepositoryUrl>https://github.com/v-anarendra_microsoft/entra-id-integration-for-drivers.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>azure;entra;PostgreSQL;Npgsql</PackageTags>
+  <!-- Use SPDX expression instead of embedding file path to avoid NU5019 when relative paths shift -->
+  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReleaseNotes>https://github.com/v-anarendra_microsoft/entra-id-integration-for-drivers/releases</PackageReleaseNotes>
+    <Copyright>Copyright 2025-$([System.DateTime]::Now.ToString(yyyy)) Arjun Narendra</Copyright>
+  </PropertyGroup>
+
+  <!-- Removed explicit license file packaging; relying on SPDX expression above -->
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Core" Version="1.44.1" />
+    <PackageReference Include="Azure.Identity" Version="1.13.1" />
+    <PackageReference Include="Npgsql" Version="8.0.5" />
+  </ItemGroup>
+
+</Project>
