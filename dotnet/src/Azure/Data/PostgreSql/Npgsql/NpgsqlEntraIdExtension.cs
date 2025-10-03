@@ -46,8 +46,6 @@ public static class NpgsqlEntraIdExtension
     {
         credential ??= new DefaultAzureCredential();
 
-        dataSourceBuilder.ConnectionStringBuilder.Username = "arjunnarendra1_gmail.com#EXT#@arjunnarendra1gmail.onmicrosoft.c";
-
         if (dataSourceBuilder.ConnectionStringBuilder.Username == null)
         {
 
@@ -82,8 +80,6 @@ public static class NpgsqlEntraIdExtension
         {
             // Use the cancellation token provided by Npgsql for async operations
             var token = await credential.GetTokenAsync(tokenRequestContext, ct).ConfigureAwait(false);
-            Console.WriteLine("Acquired new token");
-            Console.WriteLine($"Token expires on: {token.ExpiresOn}");
             return token.Token;
         });
     }
