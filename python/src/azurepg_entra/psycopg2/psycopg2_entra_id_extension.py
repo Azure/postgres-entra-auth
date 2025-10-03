@@ -1,8 +1,5 @@
 # Copyright (c) Microsoft. All rights reserved.
-import sys
 from psycopg2.extensions import connection
-import psycopg2
-import asyncio
 import aiopg
 
 from azurepg_entra.core import get_entra_conninfo, get_entra_conninfo_async
@@ -58,32 +55,3 @@ async def create_async_entra_connection(**conn_params):
 
 #     def cursor(self, *args, **kwargs):
 #         return super().cursor(*args, **kwargs)
-
-def sync_test():
-    # Use it as a factory
-    conn = psycopg2.connect(
-        dbname="postgres",
-        host="pg-mjm-dev1.postgres.database.azure.com",
-        connection_factory=SyncEntraConnection
-    )
-    cur = conn.cursor()
-    cur.execute("SELECT 1")
-    print(cur.fetchone())
-
-async def async_test():
-    # Use the factory function instead
-    conn = await create_async_entra_connection(
-        dbname="postgres",
-        host="pg-mjm-dev1.postgres.database.azure.com"
-    )
-    cur = await conn.cursor()
-    await cur.execute("SELECT 1")
-    result = await cur.fetchone()
-    print(result)
-    conn.close()
-
-if __name__ == "__main__":
-    sync_test()
-    if sys.platform == 'win32':
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(async_test())
