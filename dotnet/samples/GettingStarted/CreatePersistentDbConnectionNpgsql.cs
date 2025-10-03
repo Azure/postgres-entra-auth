@@ -108,9 +108,10 @@ class PersistentProgram
             Console.WriteLine($"Execution #{i} at {DateTime.Now:HH:mm:ss}");
 
             // Run a simple query
-            using var cmd = new NpgsqlCommand("SELECT version()", connection);
-            var version = await cmd.ExecuteScalarAsync();
-            Console.WriteLine($"Connected to PostgreSQL: {version}");
+            // CHANGE THIS TO make a query against the DB
+            using var cmd = new NpgsqlCommand("SELECT * FROM test1", connection);
+            var res = await cmd.ExecuteScalarAsync();
+            Console.WriteLine($"Data contained is: {res}");
 
             if (i < 8) // Don't delay after the last execution
             {
