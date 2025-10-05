@@ -1,6 +1,5 @@
 import logging
-import json
-import base64
+import jwt
 from typing import Any, cast
 from azure.core.credentials import TokenCredential
 from azure.core.credentials_async import AsyncTokenCredential
@@ -46,19 +45,22 @@ async def get_entra_token_async(credential: AsyncTokenCredential | None, scope: 
         cred = await credential.get_token(scope)
         return cred.token
     
-def decode_jwt(token: str) -> dict[str, Any]:
+def decode_jwt(token: str) -> dict[str, Any] | None:
     """Decodes a JWT token to extract its payload claims.
 
     Parameters:
         token (str): The JWT token string in the standard three-part format.
 
     Returns:
-        dict: A dictionary containing the claims extracted from the token payload.
+        dict | None: A dictionary containing the claims extracted from the token payload, 
+                     or None if the token is invalid.
     """
-    payload = token.split(".")[1]
-    padding = "=" * (4 - len(payload) % 4)
-    decoded_payload = base64.urlsafe_b64decode(payload + padding)
-    return cast(dict[str, Any], json.loads(decoded_payload))
+    try:
+        # Decode without verification since we only need the payload claims
+        # Azure tokens are already validated by the credential provider
+        return cast(dict[str, Any], jwt.decode(token, options={"verify_signature": False}))
+    except Exception:
+        return None
 
 def parse_principal_name(xms_mirid: str) -> str | None:
     """Parses the principal name from an Azure resource path.
@@ -104,6 +106,8 @@ def get_entra_conninfo(credential: TokenCredential | None) -> dict[str, str]:
     # Always get the DB-scope token for password
     db_token = get_entra_token(credential, AZURE_DB_FOR_POSTGRES_SCOPE)
     db_claims = decode_jwt(db_token)
+    if not db_claims:
+        raise ValueError("Invalid DB token format")
     xms_mirid = db_claims.get("xms_mirid")
     username = (
         parse_principal_name(xms_mirid) if isinstance(xms_mirid, str) else None
@@ -116,6 +120,8 @@ def get_entra_conninfo(credential: TokenCredential | None) -> dict[str, str]:
         # Fall back to management scope ONLY to discover username
         mgmt_token = get_entra_token(credential, AZURE_MANAGEMENT_SCOPE)
         mgmt_claims = decode_jwt(mgmt_token)
+        if not mgmt_claims:
+            raise ValueError("Invalid management token format")
         xms_mirid = mgmt_claims.get("xms_mirid")
         username = (
             parse_principal_name(xms_mirid) if isinstance(xms_mirid, str) else None
@@ -149,6 +155,8 @@ async def get_entra_conninfo_async(credential: AsyncTokenCredential | None) -> d
 
     db_token = await get_entra_token_async(credential, AZURE_DB_FOR_POSTGRES_SCOPE)
     db_claims = decode_jwt(db_token)
+    if not db_claims:
+        raise ValueError("Invalid DB token format")
     xms_mirid = db_claims.get("xms_mirid")
     username = (
         parse_principal_name(xms_mirid) if isinstance(xms_mirid, str) else None
@@ -160,6 +168,8 @@ async def get_entra_conninfo_async(credential: AsyncTokenCredential | None) -> d
     if not username:
         mgmt_token = await get_entra_token_async(credential, AZURE_MANAGEMENT_SCOPE)
         mgmt_claims = decode_jwt(mgmt_token)
+        if not mgmt_claims:
+            raise ValueError("Invalid management token format")
         xms_mirid = mgmt_claims.get("xms_mirid")
         username = (
             parse_principal_name(xms_mirid) if isinstance(xms_mirid, str) else None

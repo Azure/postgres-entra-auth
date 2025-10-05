@@ -10,7 +10,6 @@ Requirements:
     
     This will install:
     - psycopg[binary]>=3.1.0
-    - psycopg-pool>=3.1.0
 
 Classes:
     SyncEntraConnection: Synchronous connection class with Entra ID authentication

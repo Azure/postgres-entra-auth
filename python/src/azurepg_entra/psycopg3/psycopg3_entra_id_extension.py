@@ -1,19 +1,4 @@
 # Copyright (c) Microsoft. All rights reserved.
-"""
-Connection classes for using Entra auth with Azure DB for PostgreSQL.
-This module provides both synchronous and asynchronous connection classes that allow you to connect to Azure DB for PostgreSQL
-using Entra authentication with psycopg. It handles token acquisition and connection setup. It is not specific
-to this repository and can be used in any project that requires Entra authentication with Azure DB for PostgreSQL.
-
-For example:
-    
-    from azure_pg_entra import AsyncEntraConnection
-    from psycopg_pool import AsyncConnectionPool
-
-    async with AsyncConnectionPool("<connection string>", connection_class=AsyncEntraConnection) as pool:
-        ...
-
-"""
 
 from typing import Any
 try:
@@ -47,11 +32,8 @@ class SyncEntraConnection(Connection[tuple[Any, ...]]):
             ValueError: If the provided credential is not a valid TokenCredential.
         """
         credential = kwargs.pop("credential", None)
-        if credential:
-            if isinstance(credential, AsyncTokenCredential):
-                raise ValueError("credential must be a TokenCredential for synchronous connections")
-            if not isinstance(credential, TokenCredential):
-                raise ValueError("credential must be a TokenCredential for synchronous connections")
+        if credential and not isinstance(credential, (TokenCredential)):
+            raise ValueError("credential must be a TokenCredential for sync connections")
         
         # Check if we need to acquire Entra authentication info
         if not kwargs.get("user") or not kwargs.get("password"):

@@ -1,13 +1,6 @@
 """
 Sample demonstrating both synchronous and asynchronous psycopg connections 
 with Azure Entra ID authentication for Azure PostgreSQL.
-
-This example shows:
-1. Synchronous connection using SyncEntraConnection and ConnectionPool
-2. Asynchronous connection using AsyncEntraConnection and AsyncConnectionPool
-
-Both examples use the same Azure Entra ID authentication mechanism to connect
-to Azure Database for PostgreSQL.
 """
 
 from psycopg_pool import AsyncConnectionPool, ConnectionPool
@@ -27,6 +20,9 @@ def main_sync():
     """Synchronous connection example using psycopg with Entra ID authentication."""
 
     try:
+        # We pass in the SyncEntraConnection class to enable Entra authentication for the
+        # PostgreSQL database by acquiring an Azure access token, extracting a username from the token, and using
+        # the token itself (with the PostgreSQL scope) as the password.
         pool = ConnectionPool(
             conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
             min_size=1,
@@ -36,11 +32,12 @@ def main_sync():
         )
         pool.open()
         with pool, pool.connection() as conn, conn.cursor() as cur:
+            # Query 1
             cur.execute("SELECT now()")
             result = cur.fetchone()
             print(f"Sync - Database time: {result}")
             
-            # Test current user query
+            # Query 2
             cur.execute("SELECT current_user")
             user = cur.fetchone()
             print(f"Sync - Connected as: {user[0]}")
@@ -52,20 +49,24 @@ async def main_async():
     """Asynchronous connection example using psycopg with Entra ID authentication."""
 
     try:
+        # We pass in the AsyncEntraConnection class to enable Entra authentication for the
+        # PostgreSQL database by acquiring an Azure access token, extracting a username from the token, and using
+        # the token itself (with the PostgreSQL scope) as the password.
         pool = AsyncConnectionPool(
             conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
             min_size=1,
             max_size=5,
             open=False,
-            connection_class=AsyncEntraConnection
+            connection_class=AsyncEntraConnection 
         )
         await pool.open()
         async with pool, pool.connection() as conn, conn.cursor() as cur:
+            # Query 1
             await cur.execute("SELECT now()")
             result = await cur.fetchone()
             print(f"Async - Database time: {result}")
-            
-            # Test current user query
+
+            # Query 2
             await cur.execute("SELECT current_user")
             user = await cur.fetchone()
             print(f"Async - Connected as: {user[0]}")
@@ -73,7 +74,7 @@ async def main_async():
         print(f"Async - Error connecting to database: {e}")
         raise
 
-async def main(mode: str = "both"):
+async def main(mode: str = "async"):
     """Main function that runs sync and/or async examples based on mode.
     
     Args:

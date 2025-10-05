@@ -1,57 +1,44 @@
 # Copyright (c) Microsoft. All rights reserved.
-from psycopg2.extensions import connection
-import aiopg
-
-from azurepg_entra.core import get_entra_conninfo, get_entra_conninfo_async
+from psycopg2.extensions import connection, parse_dsn, make_dsn
+from azurepg_entra.core import get_entra_conninfo
 
 # Define a custom connection class
 class SyncEntraConnection(connection):
+    """Establishes a synchronous PostgreSQL connection using Entra authentication.
+
+    The method checks for provided credentials. If the 'user' or 'password' are not set
+    in the DSN or keyword arguments, it acquires them from Entra via the provided or default credential.
+
+    Parameters:
+        dsn: PostgreSQL connection string.
+        **kwargs: Keyword arguments including optional 'credential', and optionally 'user' and 'password'.
+
+    Raises:
+        ValueError: If the provided credential is not a valid TokenCredential.
+    """
     def __init__(self, dsn, **kwargs):
-        # Get Entra credentials before establishing connection
-        entra_creds = get_entra_conninfo(None)
-        
-        # Extract current DSN params and update with Entra credentials
-        from psycopg2.extensions import parse_dsn, make_dsn
+        # Extract current DSN params
         dsn_params = parse_dsn(dsn) if dsn else {}
-        dsn_params.update(entra_creds)  # This should include 'user' and 'password'
         
-        # Create new DSN with Entra credentials
+        # Check if user and password are already provided
+        has_user = 'user' in dsn_params or 'user' in kwargs
+        has_password = 'password' in dsn_params or 'password' in kwargs
+        
+        # Only get Entra credentials if user or password is missing
+        if not has_user or not has_password:
+            entra_creds = get_entra_conninfo(None)
+            
+            # Only update missing credentials
+            if not has_user and 'user' in entra_creds:
+                dsn_params['user'] = entra_creds['user']
+            if not has_password and 'password' in entra_creds:
+                dsn_params['password'] = entra_creds['password']
+        
+        # Update DSN params with any kwargs (kwargs take precedence)
+        dsn_params.update(kwargs)
+        
+        # Create new DSN with updated credentials
         new_dsn = make_dsn(**dsn_params)
         
-        # Call parent constructor with updated DSN
-        super().__init__(new_dsn, **kwargs)
-
-    def cursor(self, *args, **kwargs):
-        return super().cursor(*args, **kwargs)
-    
-# For async, we need a different approach - use a factory function
-async def create_async_entra_connection(**conn_params):
-    # Get Entra credentials asynchronously
-    entra_creds = await get_entra_conninfo_async(None)
-    
-    # Update connection parameters with Entra credentials
-    conn_params.update(entra_creds)
-    
-    # Create connection with updated parameters
-    conn = await aiopg.connect(**conn_params)
-    return conn
-    
-# Define a custom connection class
-# class AsyncEntraConnection(connection):
-#     async def __init__(self, dsn, **kwargs):
-#         # Get Entra credentials before establishing connection
-#         entra_creds = await get_entra_conninfo_async()
-        
-#         # Extract current DSN params and update with Entra credentials
-#         from psycopg2.extensions import parse_dsn, make_dsn
-#         dsn_params = parse_dsn(dsn) if dsn else {}
-#         dsn_params.update(entra_creds)  # This should include 'user' and 'password'
-        
-#         # Create new DSN with Entra credentials
-#         new_dsn = make_dsn(**dsn_params)
-        
-#         # Call parent constructor with updated DSN
-#         super().__init__(new_dsn, **kwargs)
-
-#     def cursor(self, *args, **kwargs):
-#         return super().cursor(*args, **kwargs)
+        # Call parent constructor with updated DSN only
+        super().__init__(new_dsn)
