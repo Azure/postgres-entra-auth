@@ -100,20 +100,18 @@ class TestEnableEntraAuthentication:
         
         with patch('sqlalchemy.event.listens_for', side_effect=capture_handler):
             with patch('azurepg_entra.sqlalchemy.sqlalchemy_entra_id_extension.get_entra_conninfo_async') as mock_get_creds_async:
-                with patch('asyncio.run') as mock_asyncio_run:
-                    mock_get_creds_async.return_value = {"user": "test@example.com", "password": "test_token"}
-                    mock_asyncio_run.return_value = {"user": "test@example.com", "password": "test_token"}
-                    
-                    from azurepg_entra.sqlalchemy import enable_entra_authentication_async
-                    enable_entra_authentication_async(mock_async_engine)
-                    
-                    # Test the captured handler directly
-                    mock_cparams = {}
-                    captured_handler(None, None, None, mock_cparams)
-                    
-                    # Verify credentials were added (either through direct call or asyncio.run)
-                    assert mock_cparams["user"] == "test@example.com"
-                    assert mock_cparams["password"] == "test_token"
+                mock_get_creds_async.return_value = {"user": "test@example.com", "password": "test_token"}
+                
+                from azurepg_entra.sqlalchemy import enable_entra_authentication_async
+                enable_entra_authentication_async(mock_async_engine)
+                
+                # Test the captured handler directly
+                mock_cparams = {}
+                captured_handler(None, None, None, mock_cparams)
+                
+                # Verify credentials were added (asyncio.run is always called for async credential fetching)
+                assert mock_cparams["user"] == "test@example.com"
+                assert mock_cparams["password"] == "test_token"
 
     def test_provide_token_async_skips_existing_credentials(self):
         """Test that provide_token_async skips when credentials already exist."""
@@ -131,7 +129,7 @@ class TestEnableEntraAuthentication:
             return decorator
         
         with patch('sqlalchemy.event.listens_for', side_effect=capture_handler):
-            with patch('azurepg_entra.sqlalchemy.sqlalchemy_entra_id_extension.get_entra_conninfo') as mock_get_creds:
+            with patch('azurepg_entra.sqlalchemy.sqlalchemy_entra_id_extension.get_entra_conninfo_async') as mock_get_creds_async:
                 from azurepg_entra.sqlalchemy import enable_entra_authentication_async
                 enable_entra_authentication_async(mock_async_engine)
                 
@@ -139,10 +137,11 @@ class TestEnableEntraAuthentication:
                 mock_cparams = {"user": "existing@example.com", "password": "existing_password"}
                 captured_handler(None, None, None, mock_cparams)
                 
-                # Verify get_entra_conninfo was not called
-                mock_get_creds.assert_not_called()
+                # Verify get_entra_conninfo_async was not called (credentials already exist)
+                mock_get_creds_async.assert_not_called()
                 assert mock_cparams["user"] == "existing@example.com"
                 assert mock_cparams["password"] == "existing_password"
+                    
 
 
 if __name__ == "__main__":
