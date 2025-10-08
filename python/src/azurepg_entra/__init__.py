@@ -2,7 +2,7 @@
 """
 Azure PostgreSQL Entra ID Integration Library
 
-This library provides connection classes for using Azure Entra ID authentication 
+This library provides connection classes for using Azure Entra ID authentication
 with Azure Database for PostgreSQL across different PostgreSQL drivers.
 
 Available modules (with optional dependencies):

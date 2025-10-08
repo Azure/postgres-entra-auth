@@ -7,7 +7,7 @@ and authentication for synchronous (psycopg2) PostgreSQL connections.
 
 Requirements:
     Install with: pip install azurepg-entra[psycopg2]
-    
+
     This will install:
     - psycopg2-binary>=2.8.0
 
@@ -17,7 +17,7 @@ Classes:
 Example usage:
     # Synchronous connection
     from azurepg_entra.psycopg2 import EntraConnection
-    
+
     connection_pool = pool.ThreadedConnectionPool(
         minconn=1,
         maxconn=5,
@@ -31,11 +31,11 @@ try:
     from .entra_connection import (
         EntraConnection,
     )
-    
+
     __all__ = [
         "EntraConnection",
     ]
-    
+
 except ImportError as e:
     # Provide a helpful error message if psycopg2 dependencies are missing
     raise ImportError(

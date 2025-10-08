@@ -1,22 +1,29 @@
 import base64
 import json
 from typing import Any, cast
+
 from azure.core.credentials import TokenCredential
 from azure.core.credentials_async import AsyncTokenCredential
 from azure.core.exceptions import ClientAuthenticationError
+from azure.identity import CredentialUnavailableError
 from azure.identity import DefaultAzureCredential as DefaultAzureCredential
 from azure.identity.aio import DefaultAzureCredential as AsyncDefaultAzureCredential
-from azure.identity import CredentialUnavailableError
-from azurepg_entra.errors import TokenDecodeError, UsernameExtractionError, ScopePermissionError
+
+from azurepg_entra.errors import (
+    ScopePermissionError,
+    TokenDecodeError,
+    UsernameExtractionError,
+)
 
 AZURE_DB_FOR_POSTGRES_SCOPE = "https://ossrdbms-aad.database.windows.net/.default"
 AZURE_MANAGEMENT_SCOPE = "https://management.azure.com/.default"
+
 
 def get_entra_token(credential: TokenCredential | None, scope: str) -> str:
     """Acquires an Entra authentication token for Azure PostgreSQL synchronously.
 
     Parameters:
-        credential (TokenCredential or None): Credential object used to obtain the token. 
+        credential (TokenCredential or None): Credential object used to obtain the token.
             If None, the default Azure credentials are used.
         scope (str): The scope for the token request.
 
@@ -27,7 +34,10 @@ def get_entra_token(credential: TokenCredential | None, scope: str) -> str:
     cred = credential.get_token(scope)
     return cred.token
 
-async def get_entra_token_async(credential: AsyncTokenCredential | None, scope: str) -> str:
+
+async def get_entra_token_async(
+    credential: AsyncTokenCredential | None, scope: str
+) -> str:
     """Asynchronously acquires an Entra authentication token for Azure PostgreSQL.
 
     Parameters:
@@ -42,7 +52,8 @@ async def get_entra_token_async(credential: AsyncTokenCredential | None, scope: 
     async with credential:
         cred = await credential.get_token(scope)
         return cred.token
-    
+
+
 def decode_jwt(token: str) -> dict[str, Any]:
     """Decodes a JWT token to extract its payload claims.
 
@@ -51,7 +62,7 @@ def decode_jwt(token: str) -> dict[str, Any]:
 
     Returns:
         dict[str, Any]: A dictionary containing the claims extracted from the token payload.
-        
+
     Raises:
         TokenValueError: If the token format is invalid or cannot be decoded.
     """
@@ -62,6 +73,7 @@ def decode_jwt(token: str) -> dict[str, Any]:
         return cast(dict[str, Any], json.loads(decoded_payload))
     except Exception as e:
         raise TokenDecodeError("Invalid JWT token format") from e
+
 
 def parse_principal_name(xms_mirid: str) -> str | None:
     """Parses the principal name from an Azure resource path.
@@ -74,20 +86,23 @@ def parse_principal_name(xms_mirid: str) -> str | None:
     """
     if not xms_mirid:
         return None
-    
+
     # Parse the xms_mirid claim which looks like
     # /subscriptions/{subId}/resourcegroups/{resourceGroup}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{principalName}
-    last_slash_index = xms_mirid.rfind('/')
+    last_slash_index = xms_mirid.rfind("/")
     if last_slash_index == -1:
         return None
 
     beginning = xms_mirid[:last_slash_index]
-    principal_name = xms_mirid[last_slash_index + 1:]
+    principal_name = xms_mirid[last_slash_index + 1 :]
 
-    if not principal_name or not beginning.lower().endswith("providers/microsoft.managedidentity/userassignedidentities"):
+    if not principal_name or not beginning.lower().endswith(
+        "providers/microsoft.managedidentity/userassignedidentities"
+    ):
         return None
 
     return principal_name
+
 
 def get_entra_conninfo(credential: TokenCredential | None) -> dict[str, str]:
     """Synchronously obtains connection information from Entra authentication for Azure PostgreSQL.
@@ -103,7 +118,7 @@ def get_entra_conninfo(credential: TokenCredential | None) -> dict[str, str]:
         dict[str, str]: A dictionary with 'user' and 'password' keys, where:
             - 'user': The extracted username from token claims
             - 'password': The Entra ID access token for database authentication
-    
+
     Raises:
         TokenDecodeError: If the JWT token cannot be decoded or is malformed.
         UsernameExtractionError: If the username cannot be extracted from token claims.
@@ -119,7 +134,9 @@ def get_entra_conninfo(credential: TokenCredential | None) -> dict[str, str]:
         raise
     xms_mirid = db_claims.get("xms_mirid")
     username = (
-        parse_principal_name(xms_mirid) if isinstance(xms_mirid, str) else None
+        parse_principal_name(xms_mirid)
+        if isinstance(xms_mirid, str)
+        else None
         or db_claims.get("upn")
         or db_claims.get("preferred_username")
         or db_claims.get("unique_name")
@@ -130,14 +147,18 @@ def get_entra_conninfo(credential: TokenCredential | None) -> dict[str, str]:
         try:
             mgmt_token = get_entra_token(credential, AZURE_MANAGEMENT_SCOPE)
         except (CredentialUnavailableError, ClientAuthenticationError) as e:
-            raise ScopePermissionError("Failed to acquire token from management scope") from e
+            raise ScopePermissionError(
+                "Failed to acquire token from management scope"
+            ) from e
         try:
             mgmt_claims = decode_jwt(mgmt_token)
         except TokenDecodeError:
             raise
         xms_mirid = mgmt_claims.get("xms_mirid")
         username = (
-            parse_principal_name(xms_mirid) if isinstance(xms_mirid, str) else None
+            parse_principal_name(xms_mirid)
+            if isinstance(xms_mirid, str)
+            else None
             or mgmt_claims.get("upn")
             or mgmt_claims.get("preferred_username")
             or mgmt_claims.get("unique_name")
@@ -151,7 +172,10 @@ def get_entra_conninfo(credential: TokenCredential | None) -> dict[str, str]:
 
     return {"user": username, "password": db_token}
 
-async def get_entra_conninfo_async(credential: AsyncTokenCredential | None) -> dict[str, str]:
+
+async def get_entra_conninfo_async(
+    credential: AsyncTokenCredential | None,
+) -> dict[str, str]:
     """Asynchronously obtains connection information from Entra authentication for Azure PostgreSQL.
 
     This function acquires an access token from Azure Entra ID and extracts the username
@@ -165,7 +189,7 @@ async def get_entra_conninfo_async(credential: AsyncTokenCredential | None) -> d
         dict[str, str]: A dictionary with 'user' and 'password' keys, where:
             - 'user': The extracted username from token claims
             - 'password': The Entra ID access token for database authentication
-    
+
     Raises:
         TokenDecodeError: If the JWT token cannot be decoded or is malformed.
         UsernameExtractionError: If the username cannot be extracted from token claims.
@@ -180,7 +204,9 @@ async def get_entra_conninfo_async(credential: AsyncTokenCredential | None) -> d
         raise
     xms_mirid = db_claims.get("xms_mirid")
     username = (
-        parse_principal_name(xms_mirid) if isinstance(xms_mirid, str) else None
+        parse_principal_name(xms_mirid)
+        if isinstance(xms_mirid, str)
+        else None
         or db_claims.get("upn")
         or db_claims.get("preferred_username")
         or db_claims.get("unique_name")
@@ -190,14 +216,18 @@ async def get_entra_conninfo_async(credential: AsyncTokenCredential | None) -> d
         try:
             mgmt_token = await get_entra_token_async(credential, AZURE_MANAGEMENT_SCOPE)
         except (CredentialUnavailableError, ClientAuthenticationError) as e:
-            raise ScopePermissionError("Failed to acquire token from management scope") from e
+            raise ScopePermissionError(
+                "Failed to acquire token from management scope"
+            ) from e
         try:
             mgmt_claims = decode_jwt(mgmt_token)
         except TokenDecodeError:
             raise
         xms_mirid = mgmt_claims.get("xms_mirid")
         username = (
-            parse_principal_name(xms_mirid) if isinstance(xms_mirid, str) else None
+            parse_principal_name(xms_mirid)
+            if isinstance(xms_mirid, str)
+            else None
             or mgmt_claims.get("upn")
             or mgmt_claims.get("preferred_username")
             or mgmt_claims.get("unique_name")

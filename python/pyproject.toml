@@ -45,7 +45,8 @@ dev = [
   "pytest>=7.0.0",
   "pytest-asyncio>=0.21.0",
   "python-dotenv>=1.0.0",
-  "mypy ~= 1.15"
+  "mypy ~= 1.15",
+  "ruff>=0.8.0"
 ]
 
 # All optional dependencies combined
@@ -57,7 +58,8 @@ all = [
   "pytest>=7.0.0",
   "pytest-asyncio>=0.21.0",
   "python-dotenv>=1.0.0",
-  "mypy ~= 1.15"
+  "mypy ~= 1.15",
+  "ruff>=0.8.0"
 ]
 
 [tool.setuptools]
@@ -70,6 +72,19 @@ include = ["azurepg_entra*"]
 [project.urls]
 Homepage = "https://github.com/v-anarendra_microsoft/entra-id-integration-for-drivers"
 Issues = "https://github.com/v-anarendra_microsoft/entra-id-integration-for-drivers/issues"
+
+# Ruff configuration
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "UP", "B", "I", "N"]
+ignore = ["N806"]  # Allow mixed case variable names
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["N"]
+"samples/**/*" = ["T201"]  # Allow print statements in samples
 
 # Installation examples:
 # Basic package only:                        pip install -e .

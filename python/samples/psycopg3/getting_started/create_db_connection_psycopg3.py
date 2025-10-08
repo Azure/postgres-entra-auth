@@ -1,36 +1,39 @@
 """
-Sample demonstrating both synchronous and asynchronous psycopg connections 
+Sample demonstrating both synchronous and asynchronous psycopg connections
 with Azure Entra ID authentication for Azure PostgreSQL.
 """
 
-from psycopg_pool import AsyncConnectionPool, ConnectionPool
-from dotenv import load_dotenv
 import argparse
 import asyncio
-import sys
 import os
-from azurepg_entra.psycopg3 import EntraConnection, AsyncEntraConnection
+import sys
+
+from dotenv import load_dotenv
+from psycopg_pool import AsyncConnectionPool, ConnectionPool
+
+from azurepg_entra.psycopg3 import AsyncEntraConnection, EntraConnection
 
 # Load environment variables from .env file
 load_dotenv()
 SERVER = os.getenv("POSTGRES_SERVER")
 DATABASE = os.getenv("POSTGRES_DATABASE", "postgres")
 
-def main_sync():
+
+def main_sync() -> None:
     """Synchronous connection example using psycopg with Entra ID authentication."""
 
     try:
         # We use the SyncEntraConnection class to enable synchronous Entra-based authentication for database access.
         # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
         # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
-        # 
+        #
         # For more details, see: https://www.psycopg.org/psycopg3/docs/api/connections.html#psycopg.Connection.connect
         pool = ConnectionPool(
             conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
             min_size=1,
             max_size=5,
             open=False,
-            connection_class=EntraConnection
+            connection_class=EntraConnection,
         )
         pool.open()
         with pool, pool.connection() as conn, conn.cursor() as cur:
@@ -38,16 +41,17 @@ def main_sync():
             cur.execute("SELECT now()")
             result = cur.fetchone()
             print(f"Sync - Database time: {result}")
-            
+
             # Query 2
             cur.execute("SELECT current_user")
             user = cur.fetchone()
-            print(f"Sync - Connected as: {user[0]}")
+            print(f"Sync - Connected as: {user[0] if user else 'Unknown'}")
     except Exception as e:
         print(f"Sync - Error connecting to database: {e}")
         raise
 
-async def main_async():
+
+async def main_async() -> None:
     """Asynchronous connection example using psycopg with Entra ID authentication."""
 
     try:
@@ -61,7 +65,7 @@ async def main_async():
             min_size=1,
             max_size=5,
             open=False,
-            connection_class=AsyncEntraConnection 
+            connection_class=AsyncEntraConnection,
         )
         await pool.open()
         async with pool, pool.connection() as conn, conn.cursor() as cur:
@@ -73,14 +77,15 @@ async def main_async():
             # Query 2
             await cur.execute("SELECT current_user")
             user = await cur.fetchone()
-            print(f"Async - Connected as: {user[0]}")
+            print(f"Async - Connected as: {user[0] if user else 'Unknown'}")
     except Exception as e:
         print(f"Async - Error connecting to database: {e}")
         raise
 
-async def main(mode: str = "async"):
+
+async def main(mode: str = "async") -> None:
     """Main function that runs sync and/or async examples based on mode.
-    
+
     Args:
         mode: "sync", "async", or "both" to determine which examples to run
     """
@@ -91,7 +96,7 @@ async def main(mode: str = "async"):
             print("✅ Sync example completed successfully!")
         except Exception as e:
             print(f"❌ Sync example failed: {e}")
-    
+
     if mode in ("async", "both"):
         if mode == "both":
             print("\n=== Running Asynchronous Example ===")
@@ -103,6 +108,7 @@ async def main(mode: str = "async"):
         except Exception as e:
             print(f"❌ Async example failed: {e}")
 
+
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(
@@ -112,12 +118,12 @@ if __name__ == "__main__":
         "--mode",
         choices=["sync", "async", "both"],
         default="both",
-        help="Run synchronous, asynchronous, or both examples (default: both)"
+        help="Run synchronous, asynchronous, or both examples (default: both)",
     )
     args = parser.parse_args()
-    
+
     # Set Windows event loop policy for compatibility if needed
-    if sys.platform.startswith('win'):
+    if sys.platform.startswith("win"):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    
+
     asyncio.run(main(args.mode))

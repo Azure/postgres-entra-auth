@@ -1,29 +1,35 @@
 """
-Sample demonstrating both synchronous and asynchronous SQLAlchemy connections 
+Sample demonstrating both synchronous and asynchronous SQLAlchemy connections
 with Azure Entra ID authentication for Azure PostgreSQL.
 """
 
-from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import create_async_engine
-from azurepg_entra.sqlalchemy import enable_entra_authentication, enable_entra_authentication_async
-from dotenv import load_dotenv
 import argparse
 import asyncio
-import sys
 import os
+import sys
+
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+from sqlalchemy.ext.asyncio import create_async_engine
+
+from azurepg_entra.sqlalchemy import (
+    enable_entra_authentication,
+    enable_entra_authentication_async,
+)
 
 # Load environment variables from .env file
 load_dotenv()
 SERVER = os.getenv("POSTGRES_SERVER")
 DATABASE = os.getenv("POSTGRES_DATABASE", "postgres")
 
-def main_sync():
+
+def main_sync() -> None:
     """Synchronous connection example using SQLAlchemy with Entra ID authentication."""
 
     try:
         # Create a synchronous engine
         engine = create_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
-        
+
         # We add an event listener to the engine to enable synchronous Entra authentication
         # for database access. This event listener is triggered whenever the connection pool
         # backing the engine creates a new connection, ensuring that Entra authentication tokens
@@ -35,25 +41,28 @@ def main_sync():
         with engine.connect() as conn:
             # Query 1
             result = conn.execute(text("SELECT now()"))
-            print(f"Sync - Database time: {result.fetchone()[0]}")
-            
+            row = result.fetchone()
+            print(f"Sync - Database time: {row[0] if row else 'Unknown'}")
+
             # Query 2
             result = conn.execute(text("SELECT current_user"))
-            print(f"Sync - Connected as: {result.fetchone()[0]}")
-            
+            row = result.fetchone()
+            print(f"Sync - Connected as: {row[0] if row else 'Unknown'}")
+
         # Clean up the engine
         engine.dispose()
     except Exception as e:
         print(f"Sync - Error connecting to database: {e}")
         raise
 
-async def main_async():
+
+async def main_async() -> None:
     """Asynchronous connection example using SQLAlchemy with Entra ID authentication."""
 
     try:
         # Create an asynchronous engine
         engine = create_async_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
-        
+
         # We add an event listener to the engine to enable asynchronous Entra authentication
         # for database access. This event listener is triggered whenever the connection pool
         # backing the engine creates a new connection, ensuring that Entra authentication tokens
@@ -65,21 +74,24 @@ async def main_async():
         async with engine.connect() as conn:
             # Query 1
             result = await conn.execute(text("SELECT now()"))
-            print(f"Async - Database time: {result.fetchone()[0]}")
+            row = result.fetchone()
+            print(f"Async - Database time: {row[0] if row else 'Unknown'}")
 
             # Query 2
             result = await conn.execute(text("SELECT current_user"))
-            print(f"Async - Connected as: {result.fetchone()[0]}")
-            
+            row = result.fetchone()
+            print(f"Async - Connected as: {row[0] if row else 'Unknown'}")
+
         # Clean up the engine
         await engine.dispose()
     except Exception as e:
         print(f"Async - Error connecting to database: {e}")
         raise
 
-async def main(mode: str = "async"):
+
+async def main(mode: str = "async") -> None:
     """Main function that runs sync and/or async examples based on mode.
-    
+
     Args:
         mode: "sync", "async", or "both" to determine which examples to run
     """
@@ -90,7 +102,7 @@ async def main(mode: str = "async"):
             print("✅ Sync example completed successfully!")
         except Exception as e:
             print(f"❌ Sync example failed: {e}")
-    
+
     if mode in ("async", "both"):
         if mode == "both":
             print("\n=== Running Asynchronous SQLAlchemy Example ===")
@@ -102,6 +114,7 @@ async def main(mode: str = "async"):
         except Exception as e:
             print(f"❌ Async example failed: {e}")
 
+
 if __name__ == "__main__":
     # Parse command line arguments
     parser = argparse.ArgumentParser(
@@ -111,12 +124,12 @@ if __name__ == "__main__":
         "--mode",
         choices=["sync", "async", "both"],
         default="both",
-        help="Run synchronous, asynchronous, or both examples (default: both)"
+        help="Run synchronous, asynchronous, or both examples (default: both)",
     )
     args = parser.parse_args()
-    
+
     # Set Windows event loop policy for compatibility if needed
-    if sys.platform.startswith('win'):
+    if sys.platform.startswith("win"):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    
+
     asyncio.run(main(args.mode))

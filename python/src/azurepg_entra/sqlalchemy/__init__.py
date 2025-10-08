@@ -10,14 +10,14 @@ Usage:
     Synchronous engines:
         from sqlalchemy import create_engine
         from azurepg_entra.sqlalchemy import enable_entra_authentication
-        
+
         engine = create_engine("postgresql://myserver.postgres.database.azure.com/mydb")
         enable_entra_authentication(engine)
-        
+
     Asynchronous engines:
         from sqlalchemy.ext.asyncio import create_async_engine
         from azurepg_entra.sqlalchemy import enable_entra_authentication_async
-        
+
         engine = create_async_engine("postgresql+asyncpg://myserver.postgres.database.azure.com/mydb")
         enable_entra_authentication_async(engine)
 
@@ -26,8 +26,8 @@ Functions:
     enable_entra_authentication_async: Enable Entra ID auth for asynchronous SQLAlchemy engines
 """
 
-from .entra_connection import enable_entra_authentication
 from .async_entra_connection import enable_entra_authentication_async
+from .entra_connection import enable_entra_authentication
 
 __all__ = [
     "enable_entra_authentication",
