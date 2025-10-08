@@ -1,0 +1,2 @@
+url=jdbc:postgresql://YOUR_SERVER.postgres.database.azure.com:5432/YOUR_DATABASE?sslmode=require
+user=your_user
