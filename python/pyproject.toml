@@ -47,7 +47,8 @@ dev = [
   "python-dotenv>=1.0.0",
   "mypy ~= 1.15",
   "ruff>=0.8.0",
-  "types-psycopg2>=2.9.0"
+  "types-psycopg2>=2.9.0",
+  "psycopg-pool>=3.1.0"
 ]
 
 # All optional dependencies combined
@@ -61,7 +62,8 @@ all = [
   "python-dotenv>=1.0.0",
   "mypy ~= 1.15",
   "ruff>=0.8.0",
-  "types-psycopg2>=2.9.0"
+  "types-psycopg2>=2.9.0",
+  "psycopg-pool>=3.1.0"
 ]
 
 [tool.setuptools]
