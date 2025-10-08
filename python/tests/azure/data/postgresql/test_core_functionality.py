@@ -1,9 +1,11 @@
 # Copyright (c) Microsoft. All rights reserved.
-import jwt
+import json
+import base64
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from azure.core.credentials import TokenCredential
 from azure.core.credentials_async import AsyncTokenCredential
+from azurepg_entra.errors import TokenDecodeError, UsernameExtractionError
 
 from azurepg_entra.core import (
     decode_jwt,
@@ -13,8 +15,13 @@ from azurepg_entra.core import (
 )
 
 def create_test_token(payload):
-    """Helper to create a test JWT token."""
-    return jwt.encode(payload, key="", algorithm="none")
+    """Helper to create a test JWT token manually."""
+    # Create a simple JWT-like token with header.payload.signature format
+    header = {"alg": "none", "typ": "JWT"}
+    header_encoded = base64.urlsafe_b64encode(json.dumps(header).encode()).decode().rstrip('=')
+    payload_encoded = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode().rstrip('=')
+    signature = ""
+    return f"{header_encoded}.{payload_encoded}.{signature}"
 
 class TestJwtParsing:
     def test_decode_jwt_with_upn(self):
@@ -29,9 +36,9 @@ class TestJwtParsing:
         result = decode_jwt(token)
         assert result == payload
 
-    def test_decode_jwt_invalid_format_returns_none(self):
-        result = decode_jwt("invalid.token")
-        assert result is None
+    def test_decode_jwt_invalid_format_raises_exception(self):
+        with pytest.raises(TokenDecodeError, match="Invalid JWT token format"):
+            decode_jwt("invalid.token")
 
     def test_parse_principal_name_valid_path(self):
         path = "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/my-identity"
@@ -59,8 +66,9 @@ class TestEntraAuthentication:
         payload = {"sub": "subject123"}
         token = create_test_token(payload)
         
+        # Mock both the DB token and the management token to have no username claims
         with patch('azurepg_entra.core.get_entra_token', return_value=token):
-            with pytest.raises(ValueError, match="Could not determine username from token claims"):
+            with pytest.raises(UsernameExtractionError, match="Could not determine username from token claims"):
                 get_entra_conninfo(mock_credential)
 
     @pytest.mark.asyncio
@@ -79,8 +87,9 @@ class TestEntraAuthentication:
         payload = {"sub": "subject123"}
         token = create_test_token(payload)
         
+        # Mock both the DB token and the management token to have no username claims
         with patch('azurepg_entra.core.get_entra_token_async', return_value=token):
-            with pytest.raises(ValueError, match="Could not determine username from token claims"):
+            with pytest.raises(UsernameExtractionError, match="Could not determine username from token claims"):
                 await get_entra_conninfo_async(mock_credential)
 
 

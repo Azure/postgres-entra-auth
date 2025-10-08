@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft. All rights reserved.
 import jwt
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from psycopg2.extensions import parse_dsn, make_dsn
 
 def create_test_token(payload):
@@ -9,9 +9,9 @@ def create_test_token(payload):
     return jwt.encode(payload, key="", algorithm="none")
 
 
-class TestSyncEntraConnection:
+class TestEntraConnection:
     def test_dsn_processing_adds_entra_credentials(self):
-        """Test that SyncEntraConnection logic correctly merges Entra credentials into DSN."""
+        """Test that EntraConnection logic correctly merges Entra credentials into DSN."""
         payload = {"upn": "user@example.com"}
         token = create_test_token(payload)
         

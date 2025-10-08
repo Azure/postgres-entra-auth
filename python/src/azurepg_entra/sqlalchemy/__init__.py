@@ -2,7 +2,7 @@
 """
 SQLAlchemy integration for Azure PostgreSQL with Entra ID authentication.
 
-This module provides seamless integration between SQLAlchemy and Azure Entra ID
+This module provides integration between SQLAlchemy and Azure Entra ID
 authentication for PostgreSQL connections. It automatically handles token acquisition
 and credential injection through SQLAlchemy's event system.
 
@@ -26,10 +26,8 @@ Functions:
     enable_entra_authentication_async: Enable Entra ID auth for asynchronous SQLAlchemy engines
 """
 
-from .sqlalchemy_entra_id_extension import (
-    enable_entra_authentication,
-    enable_entra_authentication_async,
-)
+from .entra_connection import enable_entra_authentication
+from .async_entra_connection import enable_entra_authentication_async
 
 __all__ = [
     "enable_entra_authentication",

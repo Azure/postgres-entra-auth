@@ -9,7 +9,7 @@ import argparse
 import asyncio
 import sys
 import os
-from azurepg_entra.psycopg3 import SyncEntraConnection, AsyncEntraConnection
+from azurepg_entra.psycopg3 import EntraConnection, AsyncEntraConnection
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,15 +20,17 @@ def main_sync():
     """Synchronous connection example using psycopg with Entra ID authentication."""
 
     try:
-        # We pass in the SyncEntraConnection class to enable Entra authentication for the
-        # PostgreSQL database by acquiring an Azure access token, extracting a username from the token, and using
-        # the token itself (with the PostgreSQL scope) as the password.
+        # We use the SyncEntraConnection class to enable synchronous Entra-based authentication for database access.
+        # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
+        # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
+        # 
+        # For more details, see: https://www.psycopg.org/psycopg3/docs/api/connections.html#psycopg.Connection.connect
         pool = ConnectionPool(
             conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
             min_size=1,
             max_size=5,
             open=False,
-            connection_class=SyncEntraConnection
+            connection_class=EntraConnection
         )
         pool.open()
         with pool, pool.connection() as conn, conn.cursor() as cur:
@@ -49,9 +51,11 @@ async def main_async():
     """Asynchronous connection example using psycopg with Entra ID authentication."""
 
     try:
-        # We pass in the AsyncEntraConnection class to enable Entra authentication for the
-        # PostgreSQL database by acquiring an Azure access token, extracting a username from the token, and using
-        # the token itself (with the PostgreSQL scope) as the password.
+        # We use the AsyncEntraConnection class to enable asynchronous Entra-based authentication for database access.
+        # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
+        # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
+        #
+        # For more details, see: https://www.psycopg.org/psycopg3/docs/api/connections.html#psycopg.Connection.connect
         pool = AsyncConnectionPool(
             conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
             min_size=1,

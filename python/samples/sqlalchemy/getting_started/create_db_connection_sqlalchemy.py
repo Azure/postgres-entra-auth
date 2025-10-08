@@ -24,10 +24,12 @@ def main_sync():
         # Create a synchronous engine
         engine = create_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
         
-        # We add an event listener to the engine to enable Entra authentication for the
-        # PostgreSQL database by acquiring an Azure access token, extracting a username from the token, and using
-        # the token itself (with the PostgreSQL scope) as the password. This event listener is triggered
-        # whenever we get a NEW connection from the pool backing the engine.
+        # We add an event listener to the engine to enable synchronous Entra authentication
+        # for database access. This event listener is triggered whenever the connection pool
+        # backing the engine creates a new connection, ensuring that Entra authentication tokens
+        # are properly managed and refreshed so that each connection uses a valid token.
+        #
+        # For more details, see: https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function
         enable_entra_authentication(engine)
 
         with engine.connect() as conn:
@@ -52,10 +54,12 @@ async def main_async():
         # Create an asynchronous engine
         engine = create_async_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
         
-        # We add an event listener to the engine to enable Entra authentication for the
-        # PostgreSQL database by acquiring an Azure access token, extracting a username from the token, and using
-        # the token itself (with the PostgreSQL scope) as the password. This event listener is triggered
-        # whenever we get a NEW connection from the pool backing the engine.
+        # We add an event listener to the engine to enable asynchronous Entra authentication
+        # for database access. This event listener is triggered whenever the connection pool
+        # backing the engine creates a new connection, ensuring that Entra authentication tokens
+        # are properly managed and refreshed so that each connection uses a valid token.
+        #
+        # For more details, see: https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function
         enable_entra_authentication_async(engine)
 
         async with engine.connect() as conn:

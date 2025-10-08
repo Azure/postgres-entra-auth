@@ -5,7 +5,7 @@ Sample demonstrating psycopg2 connection with synchronous Entra ID authenticatio
 from dotenv import load_dotenv
 import os
 from psycopg2 import pool
-from azurepg_entra.psycopg2 import SyncEntraConnection
+from azurepg_entra.psycopg2 import EntraConnection
 
 # Load environment variables from .env file
 load_dotenv()
@@ -14,15 +14,17 @@ DATABASE = os.getenv("POSTGRES_DATABASE", "postgres")
 
 def main_sync():
     try:
-        # We pass in the SyncEntraConnection class to enable Entra authentication for the
-        # PostgreSQL database by acquiring an Azure access token, extracting a username from the token, and using
-        # the token itself (with the PostgreSQL scope) as the password.
+        # We use the EntraConnection class to enable synchronous Entra-based authentication for database access.
+        # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
+        # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
+        #
+        # For more details, see: https://www.psycopg.org/docs/advanced.html#subclassing-connection
         connection_pool = pool.ThreadedConnectionPool(
             minconn=1,
             maxconn=5,
             host=SERVER,
             database=DATABASE,
-            connection_factory=SyncEntraConnection
+            connection_factory=EntraConnection
         )
 
         # Get a connection from the pool

@@ -12,17 +12,17 @@ Requirements:
     - psycopg[binary]>=3.1.0
 
 Classes:
-    SyncEntraConnection: Synchronous connection class with Entra ID authentication
+    EntraConnection: Synchronous connection class with Entra ID authentication
     AsyncEntraConnection: Asynchronous connection class with Entra ID authentication
 
 Example usage:
-    from azurepg_entra.psycopg3 import SyncEntraConnection, AsyncEntraConnection
+    from azurepg_entra.psycopg3 import EntraConnection, AsyncEntraConnection
     from psycopg_pool import ConnectionPool, AsyncConnectionPool
     
     # Synchronous usage
     pool = ConnectionPool(
         conninfo="postgresql://myserver:5432/mydb",
-        connection_class=SyncEntraConnection
+        connection_class=EntraConnection
     )
     
     # Asynchronous usage  
@@ -33,12 +33,10 @@ Example usage:
 """
 
 try:
-    from .psycopg3_entra_id_extension import (
-        SyncEntraConnection, 
-        AsyncEntraConnection
-    )
+    from .entra_connection import EntraConnection
+    from .async_entra_connection import AsyncEntraConnection
     __all__ = [
-        "SyncEntraConnection", 
+        "EntraConnection", 
         "AsyncEntraConnection"
     ]
 except ImportError as e:
