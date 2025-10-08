@@ -1,6 +1,6 @@
 """
-Sample demonstrating everlasting synchronous and asynchronous psycopg3 connections 
-with Azure Entra ID authentication for Azure PostgreSQL that run queries indefinitely 
+Sample demonstrating everlasting synchronous and asynchronous psycopg3 connections
+with Azure Entra ID authentication for Azure PostgreSQL that run queries indefinitely
 to test token refresh capabilities.
 """
 
@@ -24,53 +24,57 @@ DATABASE = os.getenv("POSTGRES_DATABASE", "postgres")
 
 def run_everlasting_sync_queries(interval_minutes: int = 2) -> None:
     """Run synchronous database queries indefinitely with psycopg3 and Entra authentication."""
-    
+
     print("=== Running Everlasting Synchronous psycopg3 Connection Example ===")
     print(f"Running queries every {interval_minutes} minutes...")
     print("Press Ctrl+C to stop\n")
-    
+
     # Create connection pool with Entra authentication
     pool = ConnectionPool(
         conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
         min_size=1,
         max_size=3,
         open=False,
-        connection_class=EntraConnection
+        connection_class=EntraConnection,
     )
     pool.open()
-    
+
     execution_count = 0
-    
+
     try:
         with pool:
             while True:
                 execution_count += 1
                 current_time = datetime.now().strftime("%H:%M:%S")
-                
+
                 print(f"Sync Execution #{execution_count} at {current_time}")
-                
+
                 try:
                     with pool.connection() as conn, conn.cursor() as cur:
                         # Query 1: Get PostgreSQL version
                         cur.execute("SELECT version()")
                         version = cur.fetchone()
-                        print(f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}...")
-                        
+                        print(
+                            f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}..."
+                        )
+
                         # Query 2: Get current user
                         cur.execute("SELECT current_user")
                         user = cur.fetchone()
                         print(f"Connected as: {user[0] if user else 'Unknown'}")
-                        
+
                         # Query 3: Get current timestamp
                         cur.execute("SELECT now()")
                         timestamp = cur.fetchone()
-                        print(f"Server time: {timestamp[0] if timestamp else 'Unknown'}")
-                        
+                        print(
+                            f"Server time: {timestamp[0] if timestamp else 'Unknown'}"
+                        )
+
                         print("Sync query execution successful!")
-                        
+
                 except Exception as e:
                     print(f"Database error: {e}")
-                
+
                 print(f"Waiting {interval_minutes} minutes until next execution...\n")
                 time.sleep(interval_minutes * 60)
     finally:
@@ -79,53 +83,57 @@ def run_everlasting_sync_queries(interval_minutes: int = 2) -> None:
 
 async def run_everlasting_async_queries(interval_minutes: int = 2) -> None:
     """Run asynchronous database queries indefinitely with psycopg3 and Entra authentication."""
-    
+
     print("=== Running Everlasting Asynchronous psycopg3 Connection Example ===")
     print(f"Running queries every {interval_minutes} minutes...")
     print("Press Ctrl+C to stop\n")
-    
+
     # Create async connection pool with Entra authentication
     pool = AsyncConnectionPool(
         conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
         min_size=1,
         max_size=3,
         open=False,
-        connection_class=AsyncEntraConnection
+        connection_class=AsyncEntraConnection,
     )
     await pool.open()
-    
+
     execution_count = 0
-    
+
     try:
         async with pool:
             while True:
                 execution_count += 1
                 current_time = datetime.now().strftime("%H:%M:%S")
-                
+
                 print(f"Async Execution #{execution_count} at {current_time}")
-                
+
                 try:
                     async with pool.connection() as conn, conn.cursor() as cur:
                         # Query 1: Get PostgreSQL version
                         await cur.execute("SELECT version()")
                         version = await cur.fetchone()
-                        print(f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}...")
-                        
+                        print(
+                            f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}..."
+                        )
+
                         # Query 2: Get current user
                         await cur.execute("SELECT current_user")
                         user = await cur.fetchone()
                         print(f"Connected as: {user[0] if user else 'Unknown'}")
-                        
+
                         # Query 3: Get current timestamp
                         await cur.execute("SELECT now()")
                         timestamp = await cur.fetchone()
-                        print(f"Server time: {timestamp[0] if timestamp else 'Unknown'}")
-                        
+                        print(
+                            f"Server time: {timestamp[0] if timestamp else 'Unknown'}"
+                        )
+
                         print("Async query execution successful!")
-                        
+
                 except Exception as e:
                     print(f"Database error: {e}")
-                
+
                 print(f"Waiting {interval_minutes} minutes until next execution...\n")
                 await asyncio.sleep(interval_minutes * 60)
     finally:
@@ -141,38 +149,38 @@ async def main() -> None:
         "--mode",
         choices=["sync", "async", "both"],
         default="both",
-        help="Run synchronous, asynchronous, or both examples (default: both)"
+        help="Run synchronous, asynchronous, or both examples (default: both)",
     )
     parser.add_argument(
         "--interval",
         type=int,
         default=2,
-        help="Query execution interval in minutes (default: 2)"
+        help="Query execution interval in minutes (default: 2)",
     )
     args = parser.parse_args()
-    
+
     # Validate environment variables
     if not SERVER:
         print("Error: POSTGRES_SERVER environment variable is required")
         sys.exit(1)
-    
+
     print(f"Target server: {SERVER}")
     print(f"Target database: {DATABASE}")
     print(f"Query interval: {args.interval} minutes")
     print(f"Mode: {args.mode}\n")
-    
+
     if args.mode in ("sync", "both"):
         run_everlasting_sync_queries(args.interval)
-    
+
     if args.mode in ("async", "both"):
         if args.mode == "both":
-            print("\n" + "="*60 + "\n")
+            print("\n" + "=" * 60 + "\n")
         await run_everlasting_async_queries(args.interval)
 
 
 if __name__ == "__main__":
     # Set Windows event loop policy for compatibility if needed
-    if sys.platform.startswith('win'):
+    if sys.platform.startswith("win"):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    
+
     asyncio.run(main())
