@@ -10,9 +10,10 @@ import time
 from datetime import datetime
 
 import psycopg2
-from azurepg_entra.psycopg2 import EntraConnection
 from dotenv import load_dotenv
 from psycopg2.pool import ThreadedConnectionPool
+
+from azurepg_entra.psycopg2 import EntraConnection
 
 # Load environment variables from .env file
 load_dotenv()

@@ -11,13 +11,14 @@ import sys
 import time
 from datetime import datetime
 
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+from sqlalchemy.ext.asyncio import create_async_engine
+
 from azurepg_entra.sqlalchemy import (
     enable_entra_authentication,
     enable_entra_authentication_async,
 )
-from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import create_async_engine
 
 # Load environment variables from .env file
 load_dotenv()

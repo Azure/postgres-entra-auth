@@ -11,9 +11,10 @@ import sys
 import time
 from datetime import datetime
 
-from azurepg_entra.psycopg3 import AsyncEntraConnection, EntraConnection
 from dotenv import load_dotenv
 from psycopg_pool import AsyncConnectionPool, ConnectionPool
+
+from azurepg_entra.psycopg3 import AsyncEntraConnection, EntraConnection
 
 # Load environment variables from .env file
 load_dotenv()
@@ -53,7 +54,7 @@ def run_everlasting_sync_queries(interval_minutes: int = 2) -> None:
                         # Query 1: Get PostgreSQL version
                         cur.execute("SELECT version()")
                         version = cur.fetchone()
-                        print(f"Connected to PostgreSQL: {version[0][:50]}...")
+                        print(f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}...")
                         
                         # Query 2: Get current user
                         cur.execute("SELECT current_user")
@@ -108,7 +109,7 @@ async def run_everlasting_async_queries(interval_minutes: int = 2) -> None:
                         # Query 1: Get PostgreSQL version
                         await cur.execute("SELECT version()")
                         version = await cur.fetchone()
-                        print(f"Connected to PostgreSQL: {version[0][:50]}...")
+                        print(f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}...")
                         
                         # Query 2: Get current user
                         await cur.execute("SELECT current_user")
