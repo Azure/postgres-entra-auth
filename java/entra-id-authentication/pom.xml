@@ -65,6 +65,15 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Exec plugin for running Java applications -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <mainClass>postgresql.SimpleApp</mainClass>
+        </configuration>
+      </plugin>
     </plugins>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
