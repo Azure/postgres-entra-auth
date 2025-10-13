@@ -10,7 +10,7 @@ import sys
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from azurepg_entra.sqlalchemy import (
     enable_entra_authentication,
@@ -71,16 +71,33 @@ async def main_async() -> None:
         # For more details, see: https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function
         enable_entra_authentication_async(engine)
 
+        # Core usage example
         async with engine.connect() as conn:
             # Query 1
             result = await conn.execute(text("SELECT now()"))
             row = result.fetchone()
-            print(f"Async - Database time: {row[0] if row else 'Unknown'}")
+            print(f"Async Core - Database time: {row[0] if row else 'Unknown'}")
 
             # Query 2
             result = await conn.execute(text("SELECT current_user"))
             row = result.fetchone()
-            print(f"Async - Connected as: {row[0] if row else 'Unknown'}")
+            print(f"Async Core - Connected as: {row[0] if row else 'Unknown'}")
+
+        # ORM usage example with async_sessionmaker
+        AsyncSession = async_sessionmaker(engine, expire_on_commit=False)
+        
+        async with AsyncSession() as session:
+            # Query 1
+            result = await session.execute(text("SELECT current_database()"))
+            db_name = result.scalar()
+            print(f"Async ORM - Connected to database: {db_name}")
+
+            # Query 2
+            result = await session.execute(text("SELECT version()"))
+            version = result.scalar()
+            # Just show the first part of the version string for cleaner output
+            version_short = version.split(' on ')[0] if version else 'Unknown'
+            print(f"Async ORM - PostgreSQL version: {version_short}")
 
         # Clean up the engine
         await engine.dispose()

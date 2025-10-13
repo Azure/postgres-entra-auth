@@ -15,7 +15,7 @@ SERVER = os.getenv("POSTGRES_SERVER")
 DATABASE = os.getenv("POSTGRES_DATABASE", "postgres")
 
 
-def main_sync() -> None:
+def main() -> None:
     try:
         # We use the EntraConnection class to enable synchronous Entra-based authentication for database access.
         # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
@@ -50,9 +50,9 @@ def main_sync() -> None:
             connection_pool.closeall()
 
     except Exception as e:
-        print(f"Sync - Error connecting to database: {e}")
+        print(f"Error connecting to database: {e}")
         raise
 
 
 if __name__ == "__main__":
-    main_sync()
+    main()

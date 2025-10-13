@@ -2,15 +2,20 @@
 from typing import Any
 
 from azure.core.credentials import TokenCredential
-from psycopg2.extensions import connection, make_dsn, parse_dsn
+
+try:
+    from psycopg2.extensions import connection, make_dsn, parse_dsn
+except ImportError as e:
+    # Provide a helpful error message if psycopg2 dependencies are missing
+    raise ImportError(
+        "psycopg2 dependencies are not installed. "
+        "Install them with: pip install azurepg-entra[psycopg2]"
+    ) from e
 
 from azurepg_entra.core import get_entra_conninfo
 from azurepg_entra.errors import (
     CredentialValueError,
     EntraConnectionValueError,
-    ScopePermissionError,
-    TokenDecodeError,
-    UsernameExtractionError,
 )
 
 
@@ -52,12 +57,7 @@ class EntraConnection(connection):
         if not has_user or not has_password:
             try:
                 entra_creds = get_entra_conninfo(credential)
-            except (
-                TokenDecodeError,
-                UsernameExtractionError,
-                ScopePermissionError,
-            ) as e:
-                print(repr(e))
+            except (Exception) as e:
                 raise EntraConnectionValueError(
                     "Could not retrieve Entra credentials"
                 ) from e

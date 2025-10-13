@@ -1,0 +1,25 @@
+name: PR .NET Checks
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'dotnet/**'
+      - '.github/workflows/pr-dotnet.yml'
+
+jobs:
+  dotnet-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Restore
+        working-directory: dotnet
+        run: dotnet restore
+      - name: Build
+        working-directory: dotnet
+        run: dotnet build --configuration Release --no-restore
+      - name: Test
+        working-directory: dotnet
+        run: dotnet test --configuration Release --no-build --verbosity normal

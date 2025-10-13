@@ -1,21 +1,21 @@
 # Copyright (c) Microsoft. All rights reserved.
 
 from typing import Any
+from azure.core.credentials import TokenCredential
 
 try:
-    from typing import Self
-except ImportError:
-    from typing_extensions import Self  # fallback for older Python
-from azure.core.credentials import TokenCredential
-from psycopg import Connection
+    from psycopg import Connection
+except ImportError as e:
+    # Provide a helpful error message if psycopg3 dependencies are missing
+    raise ImportError(
+        "psycopg3 dependencies are not installed. "
+        "Install them with: pip install azurepg-entra[psycopg3]"
+    ) from e
 
 from azurepg_entra.core import get_entra_conninfo
 from azurepg_entra.errors import (
     CredentialValueError,
     EntraConnectionValueError,
-    ScopePermissionError,
-    TokenDecodeError,
-    UsernameExtractionError,
 )
 
 
@@ -23,7 +23,7 @@ class EntraConnection(Connection[tuple[Any, ...]]):
     """Synchronous connection class for using Entra authentication with Azure PostgreSQL."""
 
     @classmethod
-    def connect(cls, *args: Any, **kwargs: Any) -> Self:
+    def connect(cls, *args: Any, **kwargs: Any) -> "EntraConnection":
         """Establishes a synchronous PostgreSQL connection using Entra authentication.
 
         This method automatically acquires Azure Entra ID credentials when user or password
@@ -54,12 +54,7 @@ class EntraConnection(Connection[tuple[Any, ...]]):
         if not kwargs.get("user") or not kwargs.get("password"):
             try:
                 entra_conninfo = get_entra_conninfo(credential)
-            except (
-                TokenDecodeError,
-                UsernameExtractionError,
-                ScopePermissionError,
-            ) as e:
-                print(repr(e))
+            except (Exception) as e:
                 raise EntraConnectionValueError(
                     "Could not retrieve Entra credentials"
                 ) from e

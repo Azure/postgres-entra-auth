@@ -32,14 +32,7 @@ Example usage:
     )
 """
 
-try:
-    from .async_entra_connection import AsyncEntraConnection
-    from .entra_connection import EntraConnection
+from .async_entra_connection import AsyncEntraConnection
+from .entra_connection import EntraConnection
 
-    __all__ = ["EntraConnection", "AsyncEntraConnection"]
-except ImportError as e:
-    # Provide a helpful error message if psycopg dependencies are missing
-    raise ImportError(
-        "psycopg3 dependencies are not installed. "
-        "Install them with: pip install azurepg-entra[psycopg3]"
-    ) from e
+__all__ = ["EntraConnection", "AsyncEntraConnection"]

@@ -27,18 +27,10 @@ Example usage:
     )
 """
 
-try:
-    from .entra_connection import (
-        EntraConnection,
-    )
+from .entra_connection import (
+    EntraConnection,
+)
 
-    __all__ = [
-        "EntraConnection",
-    ]
-
-except ImportError as e:
-    # Provide a helpful error message if psycopg2 dependencies are missing
-    raise ImportError(
-        "psycopg2 dependencies are not installed. "
-        "Install them with: pip install azurepg-entra[psycopg2]"
-    ) from e
+__all__ = [
+    "EntraConnection",
+]

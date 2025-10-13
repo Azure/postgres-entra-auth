@@ -2,17 +2,22 @@ from typing import Any
 
 from azure.core.credentials import TokenCredential
 from azure.core.credentials_async import AsyncTokenCredential
-from sqlalchemy import event
-from sqlalchemy.engine import Dialect
-from sqlalchemy.ext.asyncio import AsyncEngine
+
+try:
+    from sqlalchemy import event
+    from sqlalchemy.engine import Dialect
+    from sqlalchemy.ext.asyncio import AsyncEngine
+except ImportError as e:
+    # Provide a helpful error message if SQLAlchemy dependencies are missing
+    raise ImportError(
+        "SQLAlchemy dependencies are not installed. "
+        "Install them with: pip install azurepg-entra[sqlalchemy]"
+    ) from e
 
 from azurepg_entra.core import get_entra_conninfo
 from azurepg_entra.errors import (
     CredentialValueError,
     EntraConnectionValueError,
-    ScopePermissionError,
-    TokenDecodeError,
-    UsernameExtractionError,
 )
 
 
@@ -22,6 +27,8 @@ def enable_entra_authentication_async(engine: AsyncEngine) -> None:
 
     This function registers an event listener that automatically provides
     Entra ID credentials for each database connection if they are not already set.
+    Event handlers do not support async behavior so the token fetching will still
+    be synchronous.
 
     Args:
         engine: The async SQLAlchemy Engine to enable Entra authentication for
@@ -58,12 +65,7 @@ def enable_entra_authentication_async(engine: AsyncEngine) -> None:
                     else None
                 )
                 entra_creds = get_entra_conninfo(sync_credential)
-            except (
-                TokenDecodeError,
-                UsernameExtractionError,
-                ScopePermissionError,
-            ) as e:
-                print(repr(e))
+            except (Exception) as e:
                 raise EntraConnectionValueError(
                     "Could not retrieve Entra credentials"
                 ) from e
