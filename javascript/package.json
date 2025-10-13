@@ -1,0 +1,78 @@
+{
+  "name": "@azure/postgres-entra-auth-javascript",
+  "version": "1.0.0",
+  "description": "Azure Entra ID authentication extension for PostgreSQL in JavaScript",
+  "type": "module",
+  "main": "src/azure/data/postgresql/sequelize/entra_id_extension.js",
+  "exports": {
+    ".": "./src/azure/data/postgresql/sequelize/entra_id_extension.js",
+    "./sequelize": "./src/azure/data/postgresql/sequelize/entra_id_extension.js"
+  },
+  "scripts": {
+    "test": "mocha 'tests/**/*.js' --timeout 10000",
+    "test:watch": "mocha 'tests/**/*.js' --timeout 10000 --watch",
+    "test:coverage": "c8 mocha 'tests/**/*.js' --timeout 10000",
+    "lint": "eslint src/ tests/ samples/",
+    "lint:fix": "eslint src/ tests/ samples/ --fix",
+    "format": "prettier --write src/ tests/ samples/",
+    "format:check": "prettier --check src/ tests/ samples/",
+    "clean": "rm -rf node_modules coverage .nyc_output",
+    "samples:pg": "node samples/pg/getting-started/create-db-connection.js",
+    "samples:sequelize-hook": "node samples/sequelize/getting-started/create-db-connection-hook.js",
+    "samples:sequelize-callback": "node samples/sequelize/getting-started/create-db-connection-callback.js"
+  },
+  "keywords": [
+    "azure",
+    "entra-id",
+    "postgresql",
+    "sequelize",
+    "authentication",
+    "database",
+    "javascript",
+    "nodejs"
+  ],
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Azure/postgres-entra-auth.git",
+    "directory": "javascript"
+  },
+  "bugs": {
+    "url": "https://github.com/Azure/postgres-entra-auth/issues"
+  },
+  "homepage": "https://github.com/Azure/postgres-entra-auth/tree/main/javascript#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.13.0",
+    "sequelize": "^6.37.7",
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
+    "dotenv": "^17.2.3",
+    "jwt-decode": "^4.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.7.3",
+    "chai": "^5.1.1",
+    "sinon": "^19.0.2",
+    "c8": "^10.1.2",
+    "eslint": "^9.12.0",
+    "prettier": "^3.3.3",
+    "@eslint/js": "^9.12.0"
+  },
+  "peerDependencies": {
+    "sequelize": ">=6.0.0",
+    "pg": ">=8.0.0"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "directories": {
+    "lib": "src",
+    "test": "tests"
+  }
+}
