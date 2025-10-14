@@ -9,7 +9,7 @@ param(
   Run Python quality checks (lint, type, tests) locally.
 
 .DESCRIPTION
-  Mirrors the CI steps defined in pr-python.yml: install deps (.[all]), Ruff lint, mypy (target + package), pytest, and import validation.
+  Mirrors the CI steps defined in pr-python.yml: install deps (.[all]), Ruff lint, mypy, and pytest.
 
 .PARAMETER Verbose
   Show full tool output instead of suppressing it.
@@ -78,22 +78,20 @@ try {
     & $venvPython -m pip install --upgrade pip | Out-Null
     Write-CheckResult "pip upgrade" ($LASTEXITCODE -eq 0)
 
-    Write-Host "Installing project deps (editable .[all])" -ForegroundColor Blue
-    & $venvPython -m pip install -e .[all] | Out-Null
+    Write-Host "Installing project deps (.[all])" -ForegroundColor Blue
+    & $venvPython -m pip install .[all] | Out-Null
     $depsOk = $LASTEXITCODE -eq 0
     if (-not $depsOk) { Write-CheckResult "Install deps" $false; exit 1 } else { Write-CheckResult "Install deps" $true }
 
-    & $venvPython -m pip install types-psycopg2 aiohttp | Out-Null
-    Write-CheckResult "Extra deps (types-psycopg2,aiohttp)" ($LASTEXITCODE -eq 0)
-
     # Ruff
     Write-Host "Running Ruff lint" -ForegroundColor Blue
-    if ($Verbose) { & $venvPython -m ruff check ./src ./tests } else { & $venvPython -m ruff check ./src ./tests *> $null }
+    if ($Verbose) { & $venvPython -m ruff check src tests } else { & $venvPython -m ruff check src tests *> $null }
     Write-CheckResult "ruff lint" ($LASTEXITCODE -eq 0)
 
-    # mypy all
-    if ($Verbose) { & $venvPython -m mypy ./src/azurepg_entra/ } else { & $venvPython -m mypy ./src/azurepg_entra/ *> $null }
-    Write-CheckResult "mypy (all)" ($LASTEXITCODE -eq 0)
+    # mypy
+    Write-Host "Running mypy type check" -ForegroundColor Blue
+    if ($Verbose) { & $venvPython -m mypy src/azurepg_entra/ } else { & $venvPython -m mypy src/azurepg_entra/ *> $null }
+    Write-CheckResult "mypy" ($LASTEXITCODE -eq 0)
 
     if (Test-Path "tests") {
         Write-Host "Running pytest" -ForegroundColor Blue
@@ -110,9 +108,6 @@ try {
     } else {
         Write-Host "WARN No tests directory present" -ForegroundColor Yellow
     }
-
-    & $venvPython -c "import sys; sys.path.insert(0, 'src'); import azurepg_entra, azurepg_entra.core" 2>$null
-    Write-CheckResult "Import validation" ($LASTEXITCODE -eq 0)
 }
 finally {
     Pop-Location
