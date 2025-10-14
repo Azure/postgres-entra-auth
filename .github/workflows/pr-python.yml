@@ -24,8 +24,8 @@ jobs:
         run: python -m ruff check src tests
       - name: Type check
         working-directory: python
-        run: python -m mypy src/azurepg_entra/psycopg2/psycopg2_entra_id_extension.py
+        run: python -m mypy src/azurepg_entra/
       - name: Tests
         if: ${{ always() }}  # adjust if you add tests
         working-directory: python
-        run: python -m pytest -q
+        run: python -m pytest tests --import-mode=importlib -q
