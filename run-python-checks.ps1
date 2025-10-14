@@ -91,10 +91,6 @@ try {
     if ($Verbose) { & $venvPython -m ruff check ./src ./tests } else { & $venvPython -m ruff check ./src ./tests *> $null }
     Write-CheckResult "ruff lint" ($LASTEXITCODE -eq 0)
 
-    # mypy target
-    if ($Verbose) { & $venvPython -m mypy ./src/azurepg_entra/psycopg2/psycopg2_entra_id_extension.py } else { & $venvPython -m mypy ./src/azurepg_entra/psycopg2/psycopg2_entra_id_extension.py *> $null }
-    Write-CheckResult "mypy (target)" ($LASTEXITCODE -eq 0)
-
     # mypy all
     if ($Verbose) { & $venvPython -m mypy ./src/azurepg_entra/ } else { & $venvPython -m mypy ./src/azurepg_entra/ *> $null }
     Write-CheckResult "mypy (all)" ($LASTEXITCODE -eq 0)
@@ -102,26 +98,14 @@ try {
     if (Test-Path "tests") {
         Write-Host "Running pytest" -ForegroundColor Blue
         
-        # Run tests for each subdirectory separately to avoid import collisions
-        $testDirs = @(
-            "tests/azure/data/postgresql/psycopg2",
-            "tests/azure/data/postgresql/psycopg3", 
-            "tests/azure/data/postgresql/sqlalchemy",
-            "tests/azure/data/postgresql/test_core_functionality.py"
-        )
-        
-        $allTestsPass = $true
-        foreach ($testDir in $testDirs) {
-            if (Test-Path $testDir) {
-                Write-Host "  Testing $testDir" -ForegroundColor Gray
-                if ($Verbose) { 
-                    & $venvPython -m pytest $testDir -v 
-                } else { 
-                    & $venvPython -m pytest $testDir -q *> $null 
-                }
-                if ($LASTEXITCODE -ne 0) { $allTestsPass = $false }
-            }
+        # Use importlib mode to avoid import collisions from files with same basename
+        # This allows pytest to handle multiple test_entra_id_extension.py files
+        if ($Verbose) { 
+            & $venvPython -m pytest tests --import-mode=importlib -v 
+        } else { 
+            & $venvPython -m pytest tests --import-mode=importlib -q *> $null 
         }
+        $allTestsPass = ($LASTEXITCODE -eq 0)
         Write-CheckResult "pytest" $allTestsPass
     } else {
         Write-Host "WARN No tests directory present" -ForegroundColor Yellow
