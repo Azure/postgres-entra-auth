@@ -101,8 +101,28 @@ try {
 
     if (Test-Path "tests") {
         Write-Host "Running pytest" -ForegroundColor Blue
-        if ($Verbose) { & $venvPython -m pytest tests -v } else { & $venvPython -m pytest tests -q *> $null }
-        Write-CheckResult "pytest" ($LASTEXITCODE -eq 0)
+        
+        # Run tests for each subdirectory separately to avoid import collisions
+        $testDirs = @(
+            "tests/azure/data/postgresql/psycopg2",
+            "tests/azure/data/postgresql/psycopg3", 
+            "tests/azure/data/postgresql/sqlalchemy",
+            "tests/azure/data/postgresql/test_core_functionality.py"
+        )
+        
+        $allTestsPass = $true
+        foreach ($testDir in $testDirs) {
+            if (Test-Path $testDir) {
+                Write-Host "  Testing $testDir" -ForegroundColor Gray
+                if ($Verbose) { 
+                    & $venvPython -m pytest $testDir -v 
+                } else { 
+                    & $venvPython -m pytest $testDir -q *> $null 
+                }
+                if ($LASTEXITCODE -ne 0) { $allTestsPass = $false }
+            }
+        }
+        Write-CheckResult "pytest" $allTestsPass
     } else {
         Write-Host "WARN No tests directory present" -ForegroundColor Yellow
     }

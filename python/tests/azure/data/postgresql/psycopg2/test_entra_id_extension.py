@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft. All rights reserved.
 
+import base64
+import json
 from unittest.mock import patch
 
-import json
-import base64
 import pytest
 from psycopg2.extensions import make_dsn, parse_dsn
 

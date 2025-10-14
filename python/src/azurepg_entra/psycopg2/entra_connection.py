@@ -1,7 +1,9 @@
 # Copyright (c) Microsoft. All rights reserved.
 
 from typing import Any
+
 from azure.core.credentials import TokenCredential
+
 from azurepg_entra.core import get_entra_conninfo
 from azurepg_entra.errors import (
     CredentialValueError,
