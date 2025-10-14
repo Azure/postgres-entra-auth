@@ -34,7 +34,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Postgresql", "Postgresql", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Npgsql", "Npgsql", "{290860F1-0C73-540D-3A79-AA6C3ABBD9C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.Data.Postgresql.Npgsql.Tests", "tests\Azure\Data\PostgreSql\Npgsql\Azure.Data.Postgresql.Npgsql.Tests.csproj", "{750B2A4F-9EF5-4CC5-8EF9-A93F4A1748F6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.Data.Postgresql.Npgsql.Tests", "tests\Azure\Data\Postgresql\Npgsql\Azure.Data.Postgresql.Npgsql.Tests.csproj", "{750B2A4F-9EF5-4CC5-8EF9-A93F4A1748F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
