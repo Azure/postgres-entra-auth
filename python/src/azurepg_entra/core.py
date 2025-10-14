@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft. All rights reserved.
+
 import base64
 import json
 from typing import Any, cast

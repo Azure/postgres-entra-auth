@@ -6,7 +6,6 @@ from azure.core.credentials import TokenCredential
 try:
     from psycopg import Connection
 except ImportError as e:
-    # Provide a helpful error message if psycopg3 dependencies are missing
     raise ImportError(
         "psycopg3 dependencies are not installed. "
         "Install them with: pip install azurepg-entra[psycopg3]"
@@ -19,7 +18,7 @@ from azurepg_entra.errors import (
 )
 
 
-class EntraConnection(Connection[tuple[Any, ...]]):
+class EntraConnection(Connection):
     """Synchronous connection class for using Entra authentication with Azure PostgreSQL."""
 
     @classmethod
@@ -54,7 +53,7 @@ class EntraConnection(Connection[tuple[Any, ...]]):
         if not kwargs.get("user") or not kwargs.get("password"):
             try:
                 entra_conninfo = get_entra_conninfo(credential)
-            except (Exception) as e:
+            except Exception as e:
                 raise EntraConnectionValueError(
                     "Could not retrieve Entra credentials"
                 ) from e

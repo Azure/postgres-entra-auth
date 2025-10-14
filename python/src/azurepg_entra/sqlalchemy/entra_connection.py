@@ -1,12 +1,12 @@
-from typing import Any
+# Copyright (c) Microsoft. All rights reserved.
 
+from typing import Any
 from azure.core.credentials import TokenCredential
 
 try:
     from sqlalchemy import Engine, event
     from sqlalchemy.engine import Dialect
 except ImportError as e:
-    # Provide a helpful error message if SQLAlchemy dependencies are missing
     raise ImportError(
         "SQLAlchemy dependencies are not installed. "
         "Install them with: pip install azurepg-entra[sqlalchemy]"
@@ -53,7 +53,7 @@ def enable_entra_authentication(engine: Engine) -> None:
         if not has_user or not has_password:
             try:
                 entra_creds = get_entra_conninfo(credential)
-            except (Exception) as e:
+            except Exception as e:
                 raise EntraConnectionValueError(
                     "Could not retrieve Entra credentials"
                 ) from e

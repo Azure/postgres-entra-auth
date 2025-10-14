@@ -1,13 +1,11 @@
 # Copyright (c) Microsoft. All rights reserved.
 
 from typing import Any
-
 from azure.core.credentials_async import AsyncTokenCredential
 
 try:
     from psycopg import AsyncConnection
 except ImportError as e:
-    # Provide a helpful error message if psycopg3 dependencies are missing
     raise ImportError(
         "psycopg3 dependencies are not installed. "
         "Install them with: pip install azurepg-entra[psycopg3]"
@@ -19,13 +17,8 @@ from azurepg_entra.errors import (
     EntraConnectionValueError,
 )
 
-try:
-    from typing import Self
-except ImportError:
-    from typing_extensions import Self  # fallback for older Python
 
-
-class AsyncEntraConnection(AsyncConnection[tuple[Any, ...]]):
+class AsyncEntraConnection(AsyncConnection):
     """Asynchronous connection class for using Entra authentication with Azure PostgreSQL."""
 
     @classmethod
@@ -60,7 +53,7 @@ class AsyncEntraConnection(AsyncConnection[tuple[Any, ...]]):
         if not kwargs.get("user") or not kwargs.get("password"):
             try:
                 entra_conninfo = await get_entra_conninfo_async(credential)
-            except (Exception) as e:
+            except Exception as e:
                 raise EntraConnectionValueError(
                     "Could not retrieve Entra credentials"
                 ) from e

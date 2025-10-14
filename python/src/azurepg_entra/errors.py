@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft. All rights reserved.
+
 class AzurePgEntraError(Exception):
     """Base class for all custom exceptions in the project."""
 

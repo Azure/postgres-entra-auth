@@ -33,21 +33,29 @@ def run_everlasting_sync_queries(interval_minutes: int = 2) -> None:
     print(f"Running queries every {interval_minutes} minutes...")
     print("Press Ctrl+C to stop\n")
 
-    # Create synchronous engine with Entra authentication
+    # Create synchronous engine
     engine = create_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
+
+    # We add an event listener to the engine to enable synchronous Entra authentication
+    # for database access. This event listener is triggered whenever the connection pool
+    # backing the engine creates a new connection, ensuring that Entra authentication tokens
+    # are properly managed and refreshed so that each connection uses a valid token.
+    #
+    # For more details, see: https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function
     enable_entra_authentication(engine)
 
     execution_count = 0
 
-    try:
-        while True:
-            execution_count += 1
-            current_time = datetime.now().strftime("%H:%M:%S")
+    # Get one connection and reuse it throughout the program
+    with engine.connect() as conn:
+        try:
+            while True:
+                execution_count += 1
+                current_time = datetime.now().strftime("%H:%M:%S")
 
-            print(f"Sync Execution #{execution_count} at {current_time}")
+                print(f"Sync Execution #{execution_count} at {current_time}")
 
-            try:
-                with engine.connect() as conn:
+                try:
                     # Query 1: Get PostgreSQL version
                     result = conn.execute(text("SELECT version()"))
                     row = result.fetchone()
@@ -68,13 +76,13 @@ def run_everlasting_sync_queries(interval_minutes: int = 2) -> None:
 
                     print("Sync query execution successful!")
 
-            except Exception as e:
-                print(f"Database error: {e}")
+                except Exception as e:
+                    print(f"Database error: {e}")
 
-            print(f"Waiting {interval_minutes} minutes until next execution...\n")
-            time.sleep(interval_minutes * 60)
-    finally:
-        engine.dispose()
+                print(f"Waiting {interval_minutes} minutes until next execution...\n")
+                time.sleep(interval_minutes * 60)
+        finally:
+            engine.dispose()
 
 
 async def run_everlasting_async_queries(interval_minutes: int = 2) -> None:
@@ -84,21 +92,29 @@ async def run_everlasting_async_queries(interval_minutes: int = 2) -> None:
     print(f"Running queries every {interval_minutes} minutes...")
     print("Press Ctrl+C to stop\n")
 
-    # Create asynchronous engine with Entra authentication
+    # Create asynchronous engine
     engine = create_async_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
+
+    # We add an event listener to the engine to enable asynchronous Entra authentication
+    # for database access. This event listener is triggered whenever the connection pool
+    # backing the engine creates a new connection, ensuring that Entra authentication tokens
+    # are properly managed and refreshed so that each connection uses a valid token.
+    #
+    # For more details, see: https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function
     enable_entra_authentication_async(engine)
 
     execution_count = 0
 
-    try:
-        while True:
-            execution_count += 1
-            current_time = datetime.now().strftime("%H:%M:%S")
+    # Get one connection and reuse it throughout the program
+    async with engine.connect() as conn:
+        try:
+            while True:
+                execution_count += 1
+                current_time = datetime.now().strftime("%H:%M:%S")
 
-            print(f"Async Execution #{execution_count} at {current_time}")
+                print(f"Async Execution #{execution_count} at {current_time}")
 
-            try:
-                async with engine.connect() as conn:
+                try:
                     # Query 1: Get PostgreSQL version
                     result = await conn.execute(text("SELECT version()"))
                     row = result.fetchone()
@@ -119,13 +135,13 @@ async def run_everlasting_async_queries(interval_minutes: int = 2) -> None:
 
                     print("Async query execution successful!")
 
-            except Exception as e:
-                print(f"Database error: {e}")
+                except Exception as e:
+                    print(f"Database error: {e}")
 
-            print(f"Waiting {interval_minutes} minutes until next execution...\n")
-            await asyncio.sleep(interval_minutes * 60)
-    finally:
-        await engine.dispose()
+                print(f"Waiting {interval_minutes} minutes until next execution...\n")
+                time.sleep(interval_minutes * 60)
+        finally:
+            await engine.dispose()
 
 
 async def main() -> None:

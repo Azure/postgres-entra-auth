@@ -1,7 +1,7 @@
-from typing import Any
+# Copyright (c) Microsoft. All rights reserved.
 
+from typing import Any
 from azure.core.credentials import TokenCredential
-from azure.core.credentials_async import AsyncTokenCredential
 
 try:
     from sqlalchemy import event
@@ -35,21 +35,19 @@ def enable_entra_authentication_async(engine: AsyncEngine) -> None:
     """
 
     @event.listens_for(engine.sync_engine, "do_connect")
-    def provide_token_async(
+    def provide_token(
         dialect: Dialect, conn_rec: Any, cargs: Any, cparams: dict[str, Any]
     ) -> None:
-        """Event handler that provides Entra credentials for each async connection.
+        """Event handler that provides Entra credentials for each sync connection.
 
         Raises:
             CredentialValueError: If the provided credential is not a valid TokenCredential.
             EntraConnectionValueError: If Entra connection credentials cannot be retrieved
         """
         credential = cparams.get("credential", None)
-        if credential and not isinstance(
-            credential, (AsyncTokenCredential, TokenCredential)
-        ):
+        if credential and not isinstance(credential, (TokenCredential)):
             raise CredentialValueError(
-                "credential must be an AsyncTokenCredential or TokenCredential for async connections"
+                "credential must be a TokenCredential for async connections"
             )
         # Check if credentials are already present
         has_user = "user" in cparams
@@ -58,14 +56,8 @@ def enable_entra_authentication_async(engine: AsyncEngine) -> None:
         # Only get Entra credentials if user or password is missing
         if not has_user or not has_password:
             try:
-                # Cast to TokenCredential since SQLAlchemy events are synchronous
-                sync_credential: TokenCredential | None = (
-                    credential
-                    if isinstance(credential, TokenCredential) or credential is None
-                    else None
-                )
-                entra_creds = get_entra_conninfo(sync_credential)
-            except (Exception) as e:
+                entra_creds = get_entra_conninfo(credential)
+            except Exception as e:
                 raise EntraConnectionValueError(
                     "Could not retrieve Entra credentials"
                 ) from e

@@ -10,7 +10,7 @@ import sys
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from azurepg_entra.sqlalchemy import (
     enable_entra_authentication,
@@ -26,84 +26,59 @@ DATABASE = os.getenv("POSTGRES_DATABASE", "postgres")
 def main_sync() -> None:
     """Synchronous connection example using SQLAlchemy with Entra ID authentication."""
 
-    try:
-        # Create a synchronous engine
-        engine = create_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
+    # Create a synchronous engine
+    engine = create_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
 
-        # We add an event listener to the engine to enable synchronous Entra authentication
-        # for database access. This event listener is triggered whenever the connection pool
-        # backing the engine creates a new connection, ensuring that Entra authentication tokens
-        # are properly managed and refreshed so that each connection uses a valid token.
-        #
-        # For more details, see: https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function
-        enable_entra_authentication(engine)
+    # We add an event listener to the engine to enable synchronous Entra authentication
+    # for database access. This event listener is triggered whenever the connection pool
+    # backing the engine creates a new connection, ensuring that Entra authentication tokens
+    # are properly managed and refreshed so that each connection uses a valid token.
+    #
+    # For more details, see: https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function
+    enable_entra_authentication(engine)
 
-        with engine.connect() as conn:
-            # Query 1
-            result = conn.execute(text("SELECT now()"))
-            row = result.fetchone()
-            print(f"Sync - Database time: {row[0] if row else 'Unknown'}")
+    with engine.connect() as conn:
+        # Query 1
+        result = conn.execute(text("SELECT now()"))
+        row = result.fetchone()
+        print(f"Sync - Database time: {row[0] if row else 'Unknown'}")
 
-            # Query 2
-            result = conn.execute(text("SELECT current_user"))
-            row = result.fetchone()
-            print(f"Sync - Connected as: {row[0] if row else 'Unknown'}")
+        # Query 2
+        result = conn.execute(text("SELECT current_user"))
+        row = result.fetchone()
+        print(f"Sync - Connected as: {row[0] if row else 'Unknown'}")
 
-        # Clean up the engine
-        engine.dispose()
-    except Exception as e:
-        print(f"Sync - Error connecting to database: {e}")
-        raise
+    # Clean up the engine
+    engine.dispose()
 
 
 async def main_async() -> None:
     """Asynchronous connection example using SQLAlchemy with Entra ID authentication."""
 
-    try:
-        # Create an asynchronous engine
-        engine = create_async_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
+    # Create an asynchronous engine
+    engine = create_async_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
 
-        # We add an event listener to the engine to enable asynchronous Entra authentication
-        # for database access. This event listener is triggered whenever the connection pool
-        # backing the engine creates a new connection, ensuring that Entra authentication tokens
-        # are properly managed and refreshed so that each connection uses a valid token.
-        #
-        # For more details, see: https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function
-        enable_entra_authentication_async(engine)
+    # We add an event listener to the engine to enable asynchronous Entra authentication
+    # for database access. This event listener is triggered whenever the connection pool
+    # backing the engine creates a new connection, ensuring that Entra authentication tokens
+    # are properly managed and refreshed so that each connection uses a valid token.
+    #
+    # For more details, see: https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function
+    enable_entra_authentication_async(engine)
 
-        # Core usage example
-        async with engine.connect() as conn:
-            # Query 1
-            result = await conn.execute(text("SELECT now()"))
-            row = result.fetchone()
-            print(f"Async Core - Database time: {row[0] if row else 'Unknown'}")
+    async with engine.connect() as conn:
+        # Query 1
+        result = await conn.execute(text("SELECT now()"))
+        row = result.fetchone()
+        print(f"Async Core - Database time: {row[0] if row else 'Unknown'}")
 
-            # Query 2
-            result = await conn.execute(text("SELECT current_user"))
-            row = result.fetchone()
-            print(f"Async Core - Connected as: {row[0] if row else 'Unknown'}")
+        # Query 2
+        result = await conn.execute(text("SELECT current_user"))
+        row = result.fetchone()
+        print(f"Async Core - Connected as: {row[0] if row else 'Unknown'}")
 
-        # ORM usage example with async_sessionmaker
-        AsyncSession = async_sessionmaker(engine, expire_on_commit=False)
-        
-        async with AsyncSession() as session:
-            # Query 1
-            result = await session.execute(text("SELECT current_database()"))
-            db_name = result.scalar()
-            print(f"Async ORM - Connected to database: {db_name}")
-
-            # Query 2
-            result = await session.execute(text("SELECT version()"))
-            version = result.scalar()
-            # Just show the first part of the version string for cleaner output
-            version_short = version.split(' on ')[0] if version else 'Unknown'
-            print(f"Async ORM - PostgreSQL version: {version_short}")
-
-        # Clean up the engine
-        await engine.dispose()
-    except Exception as e:
-        print(f"Async - Error connecting to database: {e}")
-        raise
+    # Clean up the engine
+    await engine.dispose()
 
 
 async def main(mode: str = "async") -> None:
@@ -116,9 +91,9 @@ async def main(mode: str = "async") -> None:
         print("=== Running Synchronous SQLAlchemy Example ===")
         try:
             main_sync()
-            print("✅ Sync example completed successfully!")
+            print("Sync example completed successfully!")
         except Exception as e:
-            print(f"❌ Sync example failed: {e}")
+            print(f"Sync example failed: {e}")
 
     if mode in ("async", "both"):
         if mode == "both":
@@ -127,9 +102,9 @@ async def main(mode: str = "async") -> None:
             print("=== Running Asynchronous SQLAlchemy Example ===")
         try:
             await main_async()
-            print("✅ Async example completed successfully!")
+            print("Async example completed successfully!")
         except Exception as e:
-            print(f"❌ Async example failed: {e}")
+            print(f"Async example failed: {e}")
 
 
 if __name__ == "__main__":

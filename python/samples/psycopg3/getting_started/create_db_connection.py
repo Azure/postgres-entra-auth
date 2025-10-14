@@ -1,5 +1,5 @@
 """
-Sample demonstrating both synchronous and asynchronous psycopg connections
+Sample demonstrating both synchronous and asynchronous psycopg3 connections
 with Azure Entra ID authentication for Azure PostgreSQL.
 """
 
@@ -10,7 +10,6 @@ import sys
 
 from dotenv import load_dotenv
 from psycopg_pool import AsyncConnectionPool, ConnectionPool
-
 from azurepg_entra.psycopg3 import AsyncEntraConnection, EntraConnection
 
 # Load environment variables from .env file
@@ -22,65 +21,55 @@ DATABASE = os.getenv("POSTGRES_DATABASE", "postgres")
 def main_sync() -> None:
     """Synchronous connection example using psycopg with Entra ID authentication."""
 
-    try:
-        # We use the SyncEntraConnection class to enable synchronous Entra-based authentication for database access.
-        # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
-        # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
-        #
-        # For more details, see: https://www.psycopg.org/psycopg3/docs/api/connections.html#psycopg.Connection.connect
-        pool = ConnectionPool(
-            conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
-            min_size=1,
-            max_size=5,
-            open=False,
-            connection_class=EntraConnection,
-        )
-        pool.open()
-        with pool, pool.connection() as conn, conn.cursor() as cur:
-            # Query 1
-            cur.execute("SELECT now()")
-            result = cur.fetchone()
-            print(f"Sync - Database time: {result}")
+    # We use the EntraConnection class to enable synchronous Entra-based authentication for database access.
+    # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
+    # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
+    #
+    # For more details, see: https://www.psycopg.org/psycopg3/docs/api/connections.html#psycopg.Connection.connect
+    pool = ConnectionPool(
+        conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
+        min_size=1,
+        max_size=5,
+        open=False,
+        connection_class=EntraConnection,
+    )
+    with pool, pool.connection() as conn, conn.cursor() as cur:
+        # Query 1
+        cur.execute("SELECT now()")
+        result = cur.fetchone()
+        print(f"Sync - Database time: {result}")
 
-            # Query 2
-            cur.execute("SELECT current_user")
-            user = cur.fetchone()
-            print(f"Sync - Connected as: {user[0] if user else 'Unknown'}")
-    except Exception as e:
-        print(f"Sync - Error connecting to database: {e}")
-        raise
+        # Query 2
+        cur.execute("SELECT current_user")
+        user = cur.fetchone()
+        print(f"Sync - Connected as: {user[0] if user else 'Unknown'}")
 
 
 async def main_async() -> None:
     """Asynchronous connection example using psycopg with Entra ID authentication."""
 
-    try:
-        # We use the AsyncEntraConnection class to enable asynchronous Entra-based authentication for database access.
-        # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
-        # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
-        #
-        # For more details, see: https://www.psycopg.org/psycopg3/docs/api/connections.html#psycopg.Connection.connect
-        pool = AsyncConnectionPool(
-            conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
-            min_size=1,
-            max_size=5,
-            open=False,
-            connection_class=AsyncEntraConnection,
-        )
-        await pool.open()
-        async with pool, pool.connection() as conn, conn.cursor() as cur:
-            # Query 1
-            await cur.execute("SELECT now()")
-            result = await cur.fetchone()
-            print(f"Async - Database time: {result}")
+    # We use the AsyncEntraConnection class to enable asynchronous Entra-based authentication for database access.
+    # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
+    # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
+    #
+    # For more details, see: https://www.psycopg.org/psycopg3/docs/api/connections.html#psycopg.Connection.connect
+    pool = AsyncConnectionPool(
+        conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
+        min_size=1,
+        max_size=5,
+        open=False,
+        connection_class=AsyncEntraConnection,
+    )
+    async with pool, pool.connection() as conn, conn.cursor() as cur:
+        # Query 1
+        await cur.execute("SELECT now()")
+        result = await cur.fetchone()
+        print(f"Async - Database time: {result}")
 
-            # Query 2
-            await cur.execute("SELECT current_user")
-            user = await cur.fetchone()
-            print(f"Async - Connected as: {user[0] if user else 'Unknown'}")
-    except Exception as e:
-        print(f"Async - Error connecting to database: {e}")
-        raise
+        # Query 2
+        await cur.execute("SELECT current_user")
+        user = await cur.fetchone()
+        print(f"Async - Connected as: {user[0] if user else 'Unknown'}")
 
 
 async def main(mode: str = "async") -> None:
@@ -93,9 +82,9 @@ async def main(mode: str = "async") -> None:
         print("=== Running Synchronous Example ===")
         try:
             main_sync()
-            print("✅ Sync example completed successfully!")
+            print("Sync example completed successfully!")
         except Exception as e:
-            print(f"❌ Sync example failed: {e}")
+            print(f"Sync example failed: {e}")
 
     if mode in ("async", "both"):
         if mode == "both":
@@ -104,9 +93,9 @@ async def main(mode: str = "async") -> None:
             print("=== Running Asynchronous Example ===")
         try:
             await main_async()
-            print("✅ Async example completed successfully!")
+            print("Async example completed successfully!")
         except Exception as e:
-            print(f"❌ Async example failed: {e}")
+            print(f"Async example failed: {e}")
 
 
 if __name__ == "__main__":

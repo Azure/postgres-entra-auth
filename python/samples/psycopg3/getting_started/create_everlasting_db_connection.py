@@ -9,11 +9,10 @@ import asyncio
 import os
 import sys
 import time
-from datetime import datetime
 
+from datetime import datetime
 from dotenv import load_dotenv
 from psycopg_pool import AsyncConnectionPool, ConnectionPool
-
 from azurepg_entra.psycopg3 import AsyncEntraConnection, EntraConnection
 
 # Load environment variables from .env file
@@ -29,7 +28,11 @@ def run_everlasting_sync_queries(interval_minutes: int = 2) -> None:
     print(f"Running queries every {interval_minutes} minutes...")
     print("Press Ctrl+C to stop\n")
 
-    # Create connection pool with Entra authentication
+    # We use the EntraConnection class to enable synchronous Entra-based authentication for database access.
+    # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
+    # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
+    #
+    # For more details, see: https://www.psycopg.org/psycopg3/docs/api/connections.html#psycopg.Connection.connect
     pool = ConnectionPool(
         conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
         min_size=1,
@@ -37,48 +40,37 @@ def run_everlasting_sync_queries(interval_minutes: int = 2) -> None:
         open=False,
         connection_class=EntraConnection,
     )
-    pool.open()
 
     execution_count = 0
+    with pool:
+        # Get connection from pool
+        conn = pool.getconn()
+        while True:
+            execution_count += 1
+            current_time = datetime.now().strftime("%H:%M:%S")
+            print(f"Sync Execution #{execution_count} at {current_time}")
+            with conn.cursor() as cur:
+                # Query 1: Get PostgreSQL version
+                cur.execute("SELECT version()")
+                version = cur.fetchone()
+                print(
+                    f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}..."
+                )
 
-    try:
-        with pool:
-            while True:
-                execution_count += 1
-                current_time = datetime.now().strftime("%H:%M:%S")
+                # Query 2: Get current user
+                cur.execute("SELECT current_user")
+                user = cur.fetchone()
+                print(f"Connected as: {user[0] if user else 'Unknown'}")
 
-                print(f"Sync Execution #{execution_count} at {current_time}")
+                # Query 3: Get current timestamp
+                cur.execute("SELECT now()")
+                timestamp = cur.fetchone()
+                print(f"Server time: {timestamp[0] if timestamp else 'Unknown'}")
 
-                try:
-                    with pool.connection() as conn, conn.cursor() as cur:
-                        # Query 1: Get PostgreSQL version
-                        cur.execute("SELECT version()")
-                        version = cur.fetchone()
-                        print(
-                            f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}..."
-                        )
+                print("Sync query execution successful!")
 
-                        # Query 2: Get current user
-                        cur.execute("SELECT current_user")
-                        user = cur.fetchone()
-                        print(f"Connected as: {user[0] if user else 'Unknown'}")
-
-                        # Query 3: Get current timestamp
-                        cur.execute("SELECT now()")
-                        timestamp = cur.fetchone()
-                        print(
-                            f"Server time: {timestamp[0] if timestamp else 'Unknown'}"
-                        )
-
-                        print("Sync query execution successful!")
-
-                except Exception as e:
-                    print(f"Database error: {e}")
-
-                print(f"Waiting {interval_minutes} minutes until next execution...\n")
-                time.sleep(interval_minutes * 60)
-    finally:
-        pool.close()
+            print(f"Waiting {interval_minutes} minutes until next execution...\n")
+            time.sleep(interval_minutes * 60)
 
 
 async def run_everlasting_async_queries(interval_minutes: int = 2) -> None:
@@ -88,7 +80,11 @@ async def run_everlasting_async_queries(interval_minutes: int = 2) -> None:
     print(f"Running queries every {interval_minutes} minutes...")
     print("Press Ctrl+C to stop\n")
 
-    # Create async connection pool with Entra authentication
+    # We use the AsyncEntraConnection class to enable asynchronous Entra-based authentication for database access.
+    # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
+    # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
+    #
+    # For more details, see: https://www.psycopg.org/psycopg3/docs/api/connections.html#psycopg.Connection.connect
     pool = AsyncConnectionPool(
         conninfo=f"postgresql://{SERVER}:5432/{DATABASE}",
         min_size=1,
@@ -96,48 +92,38 @@ async def run_everlasting_async_queries(interval_minutes: int = 2) -> None:
         open=False,
         connection_class=AsyncEntraConnection,
     )
-    await pool.open()
 
     execution_count = 0
+    async with pool:
+        # Get connection from pool
+        conn = await pool.getconn()
+        while True:
+            execution_count += 1
+            current_time = datetime.now().strftime("%H:%M:%S")
 
-    try:
-        async with pool:
-            while True:
-                execution_count += 1
-                current_time = datetime.now().strftime("%H:%M:%S")
+            print(f"Async Execution #{execution_count} at {current_time}")
+            async with conn.cursor() as cur:
+                # Query 1: Get PostgreSQL version
+                await cur.execute("SELECT version()")
+                version = await cur.fetchone()
+                print(
+                    f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}..."
+                )
 
-                print(f"Async Execution #{execution_count} at {current_time}")
+                # Query 2: Get current user
+                await cur.execute("SELECT current_user")
+                user = await cur.fetchone()
+                print(f"Connected as: {user[0] if user else 'Unknown'}")
 
-                try:
-                    async with pool.connection() as conn, conn.cursor() as cur:
-                        # Query 1: Get PostgreSQL version
-                        await cur.execute("SELECT version()")
-                        version = await cur.fetchone()
-                        print(
-                            f"Connected to PostgreSQL: {version[0][:50] if version else 'Unknown'}..."
-                        )
+                # Query 3: Get current timestamp
+                await cur.execute("SELECT now()")
+                timestamp = await cur.fetchone()
+                print(f"Server time: {timestamp[0] if timestamp else 'Unknown'}")
 
-                        # Query 2: Get current user
-                        await cur.execute("SELECT current_user")
-                        user = await cur.fetchone()
-                        print(f"Connected as: {user[0] if user else 'Unknown'}")
+                print("Async query execution successful!")
 
-                        # Query 3: Get current timestamp
-                        await cur.execute("SELECT now()")
-                        timestamp = await cur.fetchone()
-                        print(
-                            f"Server time: {timestamp[0] if timestamp else 'Unknown'}"
-                        )
-
-                        print("Async query execution successful!")
-
-                except Exception as e:
-                    print(f"Database error: {e}")
-
-                print(f"Waiting {interval_minutes} minutes until next execution...\n")
-                await asyncio.sleep(interval_minutes * 60)
-    finally:
-        await pool.close()
+            print(f"Waiting {interval_minutes} minutes until next execution...\n")
+            time.sleep(interval_minutes * 60)
 
 
 async def main() -> None:
@@ -163,11 +149,6 @@ async def main() -> None:
     if not SERVER:
         print("Error: POSTGRES_SERVER environment variable is required")
         sys.exit(1)
-
-    print(f"Target server: {SERVER}")
-    print(f"Target database: {DATABASE}")
-    print(f"Query interval: {args.interval} minutes")
-    print(f"Mode: {args.mode}\n")
 
     if args.mode in ("sync", "both"):
         run_everlasting_sync_queries(args.interval)

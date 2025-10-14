@@ -1,4 +1,5 @@
 # Copyright (c) Microsoft. All rights reserved.
+
 """
 Azure PostgreSQL Entra ID Integration Library
 

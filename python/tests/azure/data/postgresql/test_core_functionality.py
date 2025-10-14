@@ -1,4 +1,5 @@
 # Copyright (c) Microsoft. All rights reserved.
+
 import base64
 import json
 from unittest.mock import AsyncMock, Mock, patch

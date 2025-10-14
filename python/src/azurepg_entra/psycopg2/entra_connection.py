@@ -1,7 +1,12 @@
 # Copyright (c) Microsoft. All rights reserved.
-from typing import Any
 
+from typing import Any
 from azure.core.credentials import TokenCredential
+from azurepg_entra.core import get_entra_conninfo
+from azurepg_entra.errors import (
+    CredentialValueError,
+    EntraConnectionValueError,
+)
 
 try:
     from psycopg2.extensions import connection, make_dsn, parse_dsn
@@ -11,13 +16,6 @@ except ImportError as e:
         "psycopg2 dependencies are not installed. "
         "Install them with: pip install azurepg-entra[psycopg2]"
     ) from e
-
-from azurepg_entra.core import get_entra_conninfo
-from azurepg_entra.errors import (
-    CredentialValueError,
-    EntraConnectionValueError,
-)
-
 
 class EntraConnection(connection):
     """Establishes a synchronous PostgreSQL connection using Entra authentication.

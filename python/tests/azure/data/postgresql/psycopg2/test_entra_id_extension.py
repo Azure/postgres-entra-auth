@@ -1,14 +1,25 @@
 # Copyright (c) Microsoft. All rights reserved.
+
 from unittest.mock import patch
 
-import jwt
+import json
+import base64
 import pytest
 from psycopg2.extensions import make_dsn, parse_dsn
 
 
 def create_test_token(payload):
-    """Helper to create a test JWT token."""
-    return jwt.encode(payload, key="", algorithm="none")
+    """Helper to create a test JWT token manually."""
+    # Create a simple JWT-like token with header.payload.signature format
+    header = {"alg": "none", "typ": "JWT"}
+    header_encoded = (
+        base64.urlsafe_b64encode(json.dumps(header).encode()).decode().rstrip("=")
+    )
+    payload_encoded = (
+        base64.urlsafe_b64encode(json.dumps(payload).encode()).decode().rstrip("=")
+    )
+    signature = ""
+    return f"{header_encoded}.{payload_encoded}.{signature}"
 
 
 class TestEntraConnection:
@@ -23,11 +34,9 @@ class TestEntraConnection:
                 "password": token,
             }
 
-            from azurepg_entra.core import get_entra_conninfo
-
             # Test with existing DSN parameters
             original_dsn = "host=localhost port=5432 dbname=testdb sslmode=require"
-            entra_creds = get_entra_conninfo(None)
+            entra_creds = mock_get_creds(None)
 
             dsn_params = parse_dsn(original_dsn) if original_dsn else {}
             dsn_params.update(entra_creds)

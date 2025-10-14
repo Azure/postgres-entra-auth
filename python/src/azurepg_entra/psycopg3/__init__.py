@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft. All rights reserved.
+
 """
-Psycopg3 (psycopg) support for Azure Entra ID authentication with Azure Database for PostgreSQL.
+Psycopg3 support for Azure Entra ID authentication with Azure Database for PostgreSQL.
 
 This module provides connection classes that extend psycopg's Connection and AsyncConnection
 to automatically handle Azure Entra ID token acquisition and authentication.
@@ -10,26 +11,11 @@ Requirements:
 
     This will install:
     - psycopg[binary]>=3.1.0
+    - aiohttp>=3.8.0
 
 Classes:
     EntraConnection: Synchronous connection class with Entra ID authentication
     AsyncEntraConnection: Asynchronous connection class with Entra ID authentication
-
-Example usage:
-    from azurepg_entra.psycopg3 import EntraConnection, AsyncEntraConnection
-    from psycopg_pool import ConnectionPool, AsyncConnectionPool
-
-    # Synchronous usage
-    pool = ConnectionPool(
-        conninfo="postgresql://myserver:5432/mydb",
-        connection_class=EntraConnection
-    )
-
-    # Asynchronous usage
-    async_pool = AsyncConnectionPool(
-        conninfo="postgresql://myserver:5432/mydb",
-        connection_class=AsyncEntraConnection
-    )
 """
 
 from .async_entra_connection import AsyncEntraConnection

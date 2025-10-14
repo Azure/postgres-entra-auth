@@ -8,11 +8,8 @@ import os
 import sys
 import time
 from datetime import datetime
-
-import psycopg2
 from dotenv import load_dotenv
 from psycopg2.pool import ThreadedConnectionPool
-
 from azurepg_entra.psycopg2 import EntraConnection
 
 # Load environment variables from .env file
@@ -24,7 +21,6 @@ DATABASE = os.getenv("POSTGRES_DATABASE", "postgres")
 def run_everlasting_queries(interval_minutes: int = 2) -> None:
     """Run database queries indefinitely with psycopg2 and Entra authentication using ThreadedConnectionPool."""
 
-    print("=== Running Everlasting psycopg2 Connection Pool Example ===")
     print(f"Running queries every {interval_minutes} minutes...")
     print("Press Ctrl+C to stop\n")
 
@@ -32,22 +28,21 @@ def run_everlasting_queries(interval_minutes: int = 2) -> None:
     conninfo = f"postgresql://{SERVER}:5432/{DATABASE}"
 
     # Create connection pool with EntraConnection factory
-    print("Creating ThreadedConnectionPool with EntraConnection factory...")
+    print("Creating connection pool with Entra ID authentication enabled...")
     pool = ThreadedConnectionPool(
         minconn=1, maxconn=3, dsn=conninfo, connection_factory=EntraConnection
     )
 
     execution_count = 0
 
+    # Get one connection and reuse it throughout the program
+    conn = pool.getconn()
+
     try:
         while True:
             execution_count += 1
             current_time = datetime.now().strftime("%H:%M:%S")
-
             print(f"Execution #{execution_count} at {current_time}")
-
-            # Get connection from pool
-            conn = pool.getconn()
 
             try:
                 with conn.cursor() as cur:
@@ -68,19 +63,13 @@ def run_everlasting_queries(interval_minutes: int = 2) -> None:
 
                     print("Query execution successful!")
 
-            except psycopg2.Error as e:
-                print(f"Database error: {e}")
             except Exception as e:
-                print(f"Unexpected error: {e}")
-            finally:
-                # Return connection to pool
-                pool.putconn(conn)
+                print(f"Database error: {e}")
 
             print(f"Waiting {interval_minutes} minutes until next execution...\n")
             time.sleep(interval_minutes * 60)
     finally:
-        # Close all connections in the pool
-        print("Closing connection pool...")
+        pool.putconn(conn)
         pool.closeall()
 
 
@@ -101,11 +90,6 @@ def main() -> None:
     if not SERVER:
         print("Error: POSTGRES_SERVER environment variable is required")
         sys.exit(1)
-
-    print(f"Target server: {SERVER}")
-    print(f"Target database: {DATABASE}")
-    print(f"Query interval: {args.interval} minutes\n")
-
     # Run the everlasting queries
     run_everlasting_queries(args.interval)
 
