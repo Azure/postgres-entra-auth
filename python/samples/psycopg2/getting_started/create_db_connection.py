@@ -1,0 +1,47 @@
+"""
+Sample demonstrating psycopg2 connection with synchronous Entra ID authentication for Azure PostgreSQL.
+"""
+
+import os
+
+from dotenv import load_dotenv
+from psycopg2 import pool
+from azurepg_entra.psycopg2 import EntraConnection
+
+# Load environment variables from .env file
+load_dotenv()
+SERVER = os.getenv("POSTGRES_SERVER")
+DATABASE = os.getenv("POSTGRES_DATABASE", "postgres")
+
+
+def main() -> None:
+    # We use the EntraConnection class to enable synchronous Entra-based authentication for database access.
+    # This class is applied whenever the connection pool creates a new connection, ensuring that Entra
+    # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
+    #
+    # For more details, see: https://www.psycopg.org/docs/advanced.html#subclassing-connection
+    connection_pool = pool.ThreadedConnectionPool(
+        minconn=1,
+        maxconn=5,
+        host=SERVER,
+        database=DATABASE,
+        connection_factory=EntraConnection,
+    )
+
+    conn = connection_pool.getconn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT now()")
+            result = cur.fetchone()
+            print(f"Database time: {result[0]}")
+
+            cur.execute("SELECT current_user")
+            user = cur.fetchone()
+            print(f"Connected as: {user[0]}")
+    finally:
+        connection_pool.putconn(conn)
+        connection_pool.closeall()
+
+
+if __name__ == "__main__":
+    main()
