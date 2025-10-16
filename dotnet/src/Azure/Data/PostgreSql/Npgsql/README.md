@@ -1,43 +1,3 @@
-## Installation
-
-Clone the repository
-```
-git clone https://github.com/v-anarendra_microsoft/entra-id-integration-for-drivers.git
-```
-
-Reference the compiled DLL in project file
-
-```
-<Reference Include="Npgsql.Entra">
-    <HintPath>path\to\your\Npgsql.Entra.dll</HintPath>
-</Reference>
-```
-
-## Configuration for Code Samples
-
-Before running the Getting Started sample, you need to configure your database connection:
-
-1. Navigate to the `samples/GettingStarted` folder
-2. Copy `appsettings.sample.json` to `appsettings.json`
-   ```bash
-   cp appsettings.sample.json appsettings.json
-   ```
-3. Edit `appsettings.json` with your Azure PostgreSQL server details
-   ```json
-   {
-     "Host": "your-server.postgres.database.azure.com",
-     "Database": "your-database-name",
-     "Port": 5432,
-     "SslMode": "Require"
-   }
-   ```
-4. Ensure you're authenticated to Azure using one of these methods:
-   - **Azure CLI**: `az login` (recommended for development)
-   - **Visual Studio**: Sign in to your Azure account
-   - **VS Code**: Use the Azure Account extension
-   - **Managed Identity**: When running on Azure (App Service, VM, etc.)
-   - **Environment Variables**: Set `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID`
-
 ## Usage
 
 In your program, import the namespace `Azure.Data.Postgresql.Npgsql` 
@@ -74,3 +34,28 @@ dataSourceBuilder.UseEntraAuthentication();
 using var dataSource = dataSourceBuilder.Build();
 await using var connection = await dataSource.OpenConnectionAsync();
 ```
+
+## Configuration for Code Samples
+
+Before running the Getting Started sample, you need to configure your database connection:
+
+1. Navigate to the `samples/GettingStarted` folder
+2. Copy `appsettings.sample.json` to `appsettings.json`
+   ```bash
+   cp appsettings.sample.json appsettings.json
+   ```
+3. Edit `appsettings.json` with your Azure PostgreSQL server details
+   ```json
+   {
+     "Host": "your-server.postgres.database.azure.com",
+     "Database": "your-database-name",
+     "Port": 5432,
+     "SslMode": "Require"
+   }
+   ```
+4. Ensure you're authenticated to Azure using one of these methods:
+   - **Azure CLI**: `az login` (recommended for development)
+   - **Visual Studio**: Sign in to your Azure account
+   - **VS Code**: Use the Azure Account extension
+   - **Managed Identity**: When running on Azure (App Service, VM, etc.)
+   - **Environment Variables**: Set `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `AZURE_TENANT_ID`
