@@ -1,145 +1,187 @@
 # PostgreSQL Entra ID Authentication for Java
 
-This library provides a simple way to connect to Azure PostgreSQL databases using Entra ID (formerly Azure AD) authentication with automatic token refresh.
+This library demonstrates how to connect to Azure PostgreSQL databases using Entra ID (formerly Azure AD) authentication with automatic token management.
 
-## Features
+## Quick Start
 
-- **Automatic Token Acquisition**: Uses Azure Identity SDK to get access tokens
-- **Username Auto-Extraction**: Extracts username from JWT token claims (no need to specify username)
-- **Token Refresh**: Automatically refreshes tokens on each connection
-- **Connection Pooling**: Works seamlessly with HikariCP and other connection pools
-- **Multiple Auth Methods**: Supports Azure CLI, Managed Identity, Visual Studio Code, and more
+### 1. Configure `application.properties`
 
-## Usage
-
-### Simple Connection with DataSource
-
-```java
-import postgresql.jdbc.EntraIdDataSource;
-
-// Create DataSource - username will be extracted from token automatically
-String url = "jdbc:postgresql://YOUR_SERVER.postgres.database.azure.com:5432/YOUR_DATABASE?sslmode=require";
-EntraIdDataSource dataSource = new EntraIdDataSource(url, null);
-Connection conn = dataSource.getConnection();
+```properties
+url=jdbc:postgresql://YOUR_SERVER.postgres.database.azure.com:5432/YOUR_DATABASE?sslmode=require&authenticationPluginClassName=com.azure.identity.extensions.jdbc.postgresql.AzurePostgresqlAuthenticationPlugin
+user=your_user@yourdomain.onmicrosoft.com
 ```
 
-### Connection with Explicit Username
+**Important**: The URL must include the `authenticationPluginClassName` parameter to enable Azure AD authentication.
 
-If you prefer to specify the username explicitly:
-
-```java
-EntraIdDataSource dataSource = new EntraIdDataSource(url, "your_user@yourdomain.onmicrosoft.com");
-Connection conn = dataSource.getConnection();
-```
-
-### Connection Pooling with HikariCP
-
-For production applications, use connection pooling to improve performance:
+### 2. Connect with JDBC
 
 ```java
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+// Load configuration
+Properties config = new Properties();
+config.load(YourClass.class.getClassLoader().getResourceAsStream("application.properties"));
 
-// Configure HikariCP
-HikariConfig config = new HikariConfig();
-config.setDataSourceClassName("postgresql.jdbc.EntraIdDataSource");
-config.addDataSourceProperty("url", url);
-// Username will be extracted from token automatically
+String url = config.getProperty("url");
+String user = config.getProperty("user");
 
-// Pool configuration
-config.setMaximumPoolSize(10);
-config.setMinimumIdle(2);
+// Create connection properties
+Properties props = new Properties();
+props.setProperty("user", user);
 
-// Create pool and execute queries
-try (HikariDataSource pooledDataSource = new HikariDataSource(config)) {
-    Connection conn = pooledDataSource.getConnection();
+// Connect - the plugin handles token acquisition automatically
+try (Connection conn = DriverManager.getConnection(url, props)) {
 }
 ```
 
-## Authentication
+### 3. Connect with Hibernate
 
-The library automatically handles Entra ID authentication by:
+```java
+// Load application.properties
+Properties props = loadApplicationProperties();
 
-1. Using `DefaultAzureCredential` to acquire an access token with the Azure PostgreSQL scope
-2. Extracting the username from JWT token claims (xms_mirid, upn, preferred_username, or unique_name)
-3. Establishing the PostgreSQL connection with the token as password
-4. Refreshing tokens automatically on each new connection
+// Configure Hibernate
+Configuration configuration = new Configuration();
+configuration.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
+configuration.setProperty("hibernate.connection.url", props.getProperty("url"));
+configuration.setProperty("hibernate.connection.username", props.getProperty("user"));
+configuration.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 
-### Username Extraction
+// Build SessionFactory - the plugin handles token acquisition automatically
+SessionFactory sessionFactory = configuration.buildSessionFactory();
+```
 
-The library automatically extracts the username from the JWT token by checking these claims in order:
+### 4. Connection Pooling with HikariCP
 
-1. **`xms_mirid`** - For Managed Identity (extracts principal name from resource path)
-2. **`upn`** - User Principal Name (most common for user accounts)
-3. **`preferred_username`** - Alternative username claim
-4. **`unique_name`** - Fallback username claim
+```java
+// Load configuration
+Properties config = loadApplicationProperties();
 
-If a username is explicitly provided to `EntraIdDataSource`, it will be used instead of extracting from the token.
+// Configure HikariCP
+HikariConfig hikariConfig = new HikariConfig();
+hikariConfig.setJdbcUrl(config.getProperty("url"));
+hikariConfig.setUsername(config.getProperty("user"));
+hikariConfig.setMaximumPoolSize(10);
+hikariConfig.setMinimumIdle(2);
 
-### Prerequisites
+// Create pool - the plugin handles token refresh automatically
+try (HikariDataSource dataSource = new HikariDataSource(hikariConfig)) {
+    Connection conn = dataSource.getConnection();
+    // Use connection
+}
+```
 
-- You must be authenticated with Azure (run `az login` or use other Azure Identity methods)
-- Your user must have appropriate permissions on the PostgreSQL database
-- The PostgreSQL server must be configured for Entra ID authentication
+## How It Works
 
-### Supported Authentication Methods
+The Azure Identity Extensions plugin (`AzurePostgresqlAuthenticationPlugin`) automatically handles authentication:
 
-The library uses Azure Identity's `DefaultAzureCredential`, which supports:
-- **Azure CLI** (`az login`)
-- **Managed Identity** (for Azure resources like VMs, App Service, etc.)
-- **Visual Studio Code** (Azure Account extension)
-- **Environment Variables** (AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_CLIENT_SECRET)
-- **Workload Identity** (for Kubernetes)
-- **Interactive Browser** (as fallback)
+1. **Token Acquisition**: When a connection is requested, the plugin uses `DefaultAzureCredential` to acquire an access token with the Azure PostgreSQL scope (`https://ossrdbms-aad.database.windows.net/.default`)
+2. **Automatic Refresh**: The plugin automatically refreshes tokens as needed
+3. **Seamless Integration**: Works transparently with JDBC, Hibernate, and connection pools
+
+You don't need to write any code for token management - the plugin handles everything!
+
+## Authentication Methods
+
+The plugin uses Azure Identity's `DefaultAzureCredential`, which automatically tries these authentication methods in order:
+
+1. **Environment Variables** - `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_CLIENT_SECRET`
+2. **Workload Identity** - For applications running in Kubernetes
+3. **Managed Identity** - For Azure resources (VMs, App Service, Container Instances, etc.)
+4. **Azure CLI** - Run `az login` for local development
+5. **Azure PowerShell** - For PowerShell users
+6. **Azure Developer CLI** - Run `azd auth login`
+7. **IntelliJ IDEA** - Azure Toolkit plugin
+8. **Visual Studio Code** - Azure Account extension
+9. **Interactive Browser** - Fallback for user authentication
 
 See [Azure Identity documentation](https://learn.microsoft.com/en-us/java/api/overview/azure/identity-readme) for more details.
 
-## How Token Refresh Works
+## Prerequisites
 
-### Without Connection Pooling
-Each call to `dataSource.getConnection()`:
-1. Acquires a fresh access token from Azure AD
-2. Extracts the username from the token
-3. Creates a new PostgreSQL connection
-
-### With Connection Pooling (Recommended)
-- HikariCP manages a pool of physical connections
-- Token refresh happens when HikariCP creates new connections
-- Configure `maxLifetime` to be less than token lifetime (typically 1 hour)
-- Existing connections are reused from the pool (no token refresh overhead)
+- **Azure Authentication**: You must be authenticated with Azure
+  - For local development: Run `az login`
+  - For Azure resources: Enable Managed Identity
+  - For other environments: Configure environment variables or other authentication methods
+- **Database Permissions**: Your Azure AD user/identity must have appropriate permissions on the PostgreSQL database
+- **Server Configuration**: The PostgreSQL server must be configured for Entra ID authentication
 
 ## Error Handling
 
-The library provides detailed error messages and logging:
-
 ```java
-try (Connection conn = dataSource.getConnection()) {
+try (Connection conn = DriverManager.getConnection(url, props)) {
     // Use connection
 } catch (SQLException e) {
-    // Handle connection errors
     System.err.println("Failed to connect: " + e.getMessage());
     e.printStackTrace();
 }
 ```
 
 Common errors:
-- **Azure authentication failed** - Run `az login` or configure credentials
-- **Username not provided and could not be extracted from token** - Token missing required claims
-- **Connection timeout** - Network issues or incorrect server URL
-- **Permission denied** - User doesn't have database permissions
-
-### Logging
-
-The library uses Java's built-in logging. To see detailed logs:
-
-```java
-import java.util.logging.*;
-
-// Enable debug logging
-Logger.getLogger("postgresql.jdbc").setLevel(Level.FINE);
-```
+- **Azure authentication failed** - Run `az login` or configure your authentication method
+- **Connection timeout** - Check network connectivity and server URL
+- **Permission denied** - Ensure your Azure AD user has database permissions
 
 ## Examples
 
-See the `src/samples/postgresql/jdbc/` directory for complete examples:
-- **`Main.java`** - Demonstrates basic connections, token refresh, and HikariCP pooling
+See the `src/main/java/postgresql/` directory for complete examples:
+
+### JDBC Examples (`postgresql.jdbc` package)
+- **`EntraIdExtension.java`** - Demonstrates basic JDBC connection and HikariCP pooling with Azure AD authentication
+
+### Hibernate Examples (`postgresql.hibernate` package)
+- **`EntraIdExtension.java`** - Demonstrates Hibernate SessionFactory configuration with Azure AD authentication
+
+All examples use the same `application.properties` configuration file for consistency.
+
+## Dependencies
+
+Add these dependencies to your `pom.xml`:
+
+```xml
+<dependencies>
+    <!-- PostgreSQL JDBC Driver -->
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>42.7.4</version>
+    </dependency>
+    
+    <!-- Azure Identity Extensions for PostgreSQL -->
+    <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-identity-extensions</artifactId>
+        <version>1.2.0</version>
+    </dependency>
+    
+    <!-- Optional: HikariCP for connection pooling -->
+    <dependency>
+        <groupId>com.zaxxer</groupId>
+        <artifactId>HikariCP</artifactId>
+        <version>5.1.0</version>
+    </dependency>
+    
+    <!-- Optional: Hibernate ORM -->
+    <dependency>
+        <groupId>org.hibernate.orm</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>6.4.4.Final</version>
+    </dependency>
+</dependencies>
+```
+
+**Note**: The `azure-identity-extensions` dependency includes `azure-identity` transitively, so you don't need to add `azure-identity` separately.
+
+## Running the Samples
+
+```bash
+cd java/entra-id-authentication
+
+# Update application.properties with your server and user
+# Then compile and run:
+mvn compile
+
+# Run JDBC example
+mvn exec:java -Dexec.mainClass=postgresql.jdbc.EntraIdExtension
+
+# Run Hibernate example  
+mvn exec:java -Dexec.mainClass=postgresql.hibernate.EntraIdExtension
+```

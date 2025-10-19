@@ -24,13 +24,6 @@
       <version>42.7.4</version>
     </dependency>
     
-    <!-- Azure Identity for authentication -->
-    <dependency>
-      <groupId>com.azure</groupId>
-      <artifactId>azure-identity</artifactId>
-      <version>1.13.2</version>
-    </dependency>
-    
     <!-- Azure Identity Extensions for PostgreSQL -->
     <dependency>
       <groupId>com.azure</groupId>
@@ -43,13 +36,6 @@
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
       <version>6.4.4.Final</version>
-    </dependency>
-    
-    <!-- Jackson for JWT parsing -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>2.17.2</version>
     </dependency>
     
     <!-- HikariCP for connection pooling -->
@@ -98,6 +84,31 @@
         <version>3.1.0</version>
         <configuration>
           <mainClass>postgresql.jdbc.Main</mainClass>
+        </configuration>
+      </plugin>
+      
+      <!-- Spotless for code formatting -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>2.43.0</version>
+        <configuration>
+          <java>
+            <includes>
+              <include>src/main/java/postgresql/**/*.java</include>
+            </includes>
+            <!-- Use Eclipse formatter with 4-space indentation -->
+            <eclipse>
+              <version>4.21.0</version>
+            </eclipse>
+            <indent>
+              <spaces>true</spaces>
+              <spacesPerTab>4</spacesPerTab>
+            </indent>
+            <removeUnusedImports />
+            <trimTrailingWhitespace />
+            <endWithNewline />
+          </java>
         </configuration>
       </plugin>
     </plugins>
