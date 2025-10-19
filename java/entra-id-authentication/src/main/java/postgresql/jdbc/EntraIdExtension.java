@@ -51,7 +51,8 @@ public class EntraIdExtension {
     }
 
     /**
-     * Demonstrate basic JDBC connection using DriverManager and Azure authentication plugin
+     * Demonstrate basic JDBC connection using DriverManager and Azure
+     * authentication plugin
      */
     private static void demonstrateBasicJdbc(String url, String user) {
         System.out.println("Basic JDBC Connection (no pooling):");
