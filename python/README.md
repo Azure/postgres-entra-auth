@@ -101,7 +101,7 @@ Choose the driver that best fits your project needs:
 
 - **psycopg3**: Modern PostgreSQL driver (recommended for new projects)
 - **psycopg2**: Legacy PostgreSQL driver (for existing projects)  
-- **SQLAlchemy**: High-level ORM/Core interface using psycopg3 backend
+- **SQLAlchemy**: High-level ORM/Core interface
 
 ---
 
@@ -109,85 +109,36 @@ Choose the driver that best fits your project needs:
 
 > **Note**: psycopg2 is in maintenance mode. For new projects, consider using psycopg3 instead.
 
-The psycopg2 integration provides both synchronous (psycopg2) and asynchronous (aiopg) connection support with Azure Entra ID authentication.
+The psycopg2 integration provides synchronous connection support with Azure Entra ID authentication through connection pooling.
 
 ### Installation
 ```bash
 pip install "azurepg-entra[psycopg2]"
 ```
 
-### Synchronous Connection (psycopg2)
+### Connection Pooling (Recommended)
 
 ```python
-from azurepg_entra.psycopg2 import connect_with_entra
-from psycopg2 import pool
+from azurepg_entra.psycopg2 import EntraConnection # import library
+from psycopg2 import pool # import to use pooling
 
-def main():
-    # Direct connection
-    conn = connect_with_entra(
-        host="your-server.postgres.database.azure.com",
-        port=5432,
-        dbname="your_database"
-    )
-    
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT current_user, now()")
-            user, time = cur.fetchone()
-            print(f"Connected as: {user} at {time}")
-    finally:
-        conn.close()
-
-    # Connection pooling
-    def entra_connection_factory(*args, **kwargs):
-        return connect_with_entra(
-            host="your-server.postgres.database.azure.com",
-            port=5432,
-            dbname="your_database"
-        )
-    
-    connection_pool = pool.ThreadedConnectionPool(
-        minconn=1, maxconn=5,
-        connection_factory=entra_connection_factory
-    )
-    
-    conn = connection_pool.getconn()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT current_user")
-            print(f"Pool connection as: {cur.fetchone()[0]}")
-    finally:
-        connection_pool.putconn(conn)
-        connection_pool.closeall()
-
-if __name__ == "__main__":
-    main()
+with pool.ThreadedConnectionPool(
+    minconn=1,
+    maxconn=5,
+    host="your-server.postgres.database.azure.com",
+    database="your_database",
+    connection_factory=EntraConnection
+) as connection_pool:
 ```
 
-### Asynchronous Connection (aiopg)
+### Direct Connection
 
 ```python
-import asyncio
-from azurepg_entra.psycopg2 import connect_with_entra_async
+from azurepg_entra.psycopg2 import EntraConnection # import library
 
-async def main():
-    # Direct async connection
-    conn = await connect_with_entra_async(
-        host="your-server.postgres.database.azure.com",
-        port=5432,
-        dbname="your_database"
-    )
-    
-    try:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT current_user, now()")
-            user, time = await cur.fetchone()
-            print(f"Async connected as: {user} at {time}")
-    finally:
-        conn.close()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+with EntraConnection(
+    "postgresql://your-server.postgres.database.azure.com:5432/your_database"
+) as conn
 ```
 
 ---
@@ -204,82 +155,38 @@ pip install "azurepg-entra[psycopg3]"
 ### Synchronous Connection
 
 ```python
-from azurepg_entra.psycopg3 import SyncEntraConnection
-from psycopg_pool import ConnectionPool
+from azurepg_entra.psycopg3 import EntraConnection # import library
+from psycopg_pool import ConnectionPool # import to use pooling
 
-def main():
-    # Direct connection
-    with SyncEntraConnection.connect(
-        "postgresql://your-server.postgres.database.azure.com:5432/your_database"
-    ) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT current_user, now()")
-            user, time = cur.fetchone()
-            print(f"Connected as: {user} at {time}")
-
-    # Connection pooling (recommended for production)
-    with ConnectionPool(
-        conninfo="postgresql://your-server.postgres.database.azure.com:5432/your_database",
-        connection_class=SyncEntraConnection,
-        min_size=1,   # keep at least 1 connection always open
-        max_size=5,   # allow up to 5 concurrent connections
-        max_waiting=10,   # seconds to wait if pool is full
-    ) as pool:
-        with pool.connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT current_user, now()")
-                user, time = cur.fetchone()
-                print(f"Pool connection as: {user} at {time}")
-
-if __name__ == "__main__":
-    main()
+with ConnectionPool(
+    conninfo="postgresql://your-server.postgres.database.azure.com:5432/your_database",
+    connection_class=EntraConnection,
+    min_size=1,   # keep at least 1 connection always open
+    max_size=5,   # allow up to 5 concurrent connections
+) as pool
 ```
 
 ### Asynchronous Connection
 
 ```python
-import asyncio
-import sys
-from azurepg_entra.psycopg3 import AsyncEntraConnection
-from psycopg_pool import AsyncConnectionPool
+from azurepg_entra.psycopg3 import AsyncEntraConnection # import library
+from psycopg_pool import AsyncConnectionPool # import to use pooling 
 
-async def main():
-    # Direct async connection
-    async with await AsyncEntraConnection.connect(
-        "postgresql://your-server.postgres.database.azure.com:5432/your_database"
-    ) as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT current_user, now()")
-            user, time = await cur.fetchone()
-            print(f"Async connected as: {user} at {time}")
-
-    # Async connection pooling (recommended for production)
-    async with AsyncConnectionPool(
-        conninfo="postgresql://your-server.postgres.database.azure.com:5432/your_database",
-        connection_class=AsyncEntraConnection,
-        min_size=1,   # keep at least 1 connection always open
-        max_size=5,   # allow up to 5 concurrent connections
-        max_waiting=10,   # seconds to wait if pool is full
-    ) as pool:
-        async with pool.connection() as conn:
-            async with conn.cursor() as cur:
-                await cur.execute("SELECT current_user, now()")
-                user, time = await cur.fetchone()
-                print(f"Pool connection as: {user} at {time}")
-
-if __name__ == "__main__":
-    # Windows compatibility for async operations
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    
-    asyncio.run(main())
+async with AsyncConnectionPool(
+    conninfo="postgresql://your-server.postgres.database.azure.com:5432/your_database",
+    connection_class=AsyncEntraConnection,
+    min_size=1,   # keep at least 1 connection always open
+    max_size=5,   # allow up to 5 concurrent connections
+) as pool
 ```
 
 ---
 
 ## SQLAlchemy Integration
 
-SQLAlchemy integration uses psycopg3 as the backend driver with automatic Entra ID authentication.
+SQLAlchemy integration uses psycopg3 as the backend driver with automatic Entra ID authentication through event listeners.
+
+> **For more information**: See SQLAlchemy's documentation on [controlling how parameters are passed to the DBAPI connect function](https://docs.sqlalchemy.org/en/20/core/engines.html#controlling-how-parameters-are-passed-to-the-dbapi-connect-function).
 
 ### Installation
 ```bash
@@ -289,73 +196,37 @@ pip install "azurepg-entra[sqlalchemy]"
 ### Synchronous Engine
 
 ```python
-from azurepg_entra.sqlalchemy import create_entra_engine
-from sqlalchemy import text
+from sqlalchemy import create_engine
+from azurepg_entra.sqlalchemy import enable_entra_authentication # import library
 
-def main():
-    # Create synchronous engine with Entra ID authentication
-    engine = create_entra_engine(
-        "postgresql+psycopg://your-server.postgres.database.azure.com:5432/your_database"
-    )
+with create_engine("postgresql+psycopg://your-server.postgres.database.azure.com/your_database") as engine:
+    # Enable Entra ID authentication
+    enable_entra_authentication(engine)
     
     # Core usage
     with engine.connect() as conn:
-        result = conn.execute(text("SELECT current_user, now()"))
-        user, time = result.fetchone()
-        print(f"SQLAlchemy connected as: {user} at {time}")
-    
+
     # ORM usage
     from sqlalchemy.orm import sessionmaker
     Session = sessionmaker(bind=engine)
-    
-    with Session() as session:
-        result = session.execute(text("SELECT current_database()"))
-        db_name = result.scalar()
-        print(f"Connected to database: {db_name}")
-    
-    engine.dispose()
-
-if __name__ == "__main__":
-    main()
 ```
 
 ### Asynchronous Engine
 
 ```python
-import asyncio
-import sys
-from azurepg_entra.sqlalchemy import create_async_entra_engine
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine
+from azurepg_entra.sqlalchemy import enable_entra_authentication_async # import library
 
-async def main():
-    # Create asynchronous engine with Entra ID authentication
-    engine = await create_async_entra_engine(
-        "postgresql+psycopg://your-server.postgres.database.azure.com:5432/your_database"
-    )
+async with create_async_engine("postgresql+psycopg://your-server.postgres.database.azure.com/your_database") as engine:
+    # Enable Entra ID authentication for async
+    enable_entra_authentication_async(engine)
     
     # Async Core usage
     async with engine.connect() as conn:
-        result = await conn.execute(text("SELECT current_user, now()"))
-        user, time = result.fetchone()
-        print(f"Async SQLAlchemy connected as: {user} at {time}")
     
     # Async ORM usage
+    from sqlalchemy.ext.asyncio import async_sessionmaker
     AsyncSession = async_sessionmaker(engine, expire_on_commit=False)
-    
-    async with AsyncSession() as session:
-        result = await session.execute(text("SELECT current_database()"))
-        db_name = result.scalar()
-        print(f"Async connected to database: {db_name}")
-    
-    await engine.dispose()
-
-if __name__ == "__main__":
-    # Windows compatibility for async operations
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    
-    asyncio.run(main())
 ```
 
 ## How It Works
@@ -380,8 +251,6 @@ The package automatically requests the correct OAuth2 scopes:
 - **⏰ Automatic expiration**: Tokens expire and are refreshed automatically
 - **🛡️ SSL enforcement**: All connections require SSL encryption
 - **🔑 Principle of least privilege**: Only database-specific scopes are requested
-- **📋 Audit logging**: Authentication events are logged by Azure Database for PostgreSQL
-
 ---
 
 ## Troubleshooting
