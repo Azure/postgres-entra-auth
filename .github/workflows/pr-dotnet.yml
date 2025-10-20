@@ -29,6 +29,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
         
       - name: Format check
+        if: runner.os != 'Linux'
         working-directory: dotnet
         run: dotnet format --verify-no-changes --verbosity diagnostic
         
