@@ -1,105 +1,47 @@
+// Copyright (c) Microsoft. All rights reserved.
+
+using Npgsql;
 using Azure.Data.Postgresql.Npgsql;
 using Microsoft.Extensions.Configuration;
-using Npgsql;
+using Xunit;
 
 namespace GettingStarted;
 
-// Console application to test functionality of using Entra authentication to connect to Azure PostgreSQL database
-class Program
+/// <summary>
+/// This example enables Entra authentication before connecting to the database via NpgsqlConnection.
+/// </summary>
+public sealed class Step1_Connect_With_Entra_Authentication()
 {
-    static async Task Main(string[] args)
+    /// <summary>
+    /// Show how to create a connection to the database with Entra authentication and execute some prompts.
+    /// </summary>
+    [Fact]
+    public async Task ConnectWithEntraAuthentication()
     {
-        // Parse command line arguments
-        bool useAsync = true; // Default to async
-        bool useSync = false;
+        // Build configuration
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Environment.CurrentDirectory)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables()
+            .Build();
 
-        if (args.Length > 0)
-        {
-            var arg = args[0].ToLowerInvariant();
-            switch (arg)
-            {
-                case "--sync":
-                    useAsync = false;
-                    useSync = true;
-                    break;
-                case "--async":
-                    useAsync = true;
-                    useSync = false;
-                    break;
-                case "--both":
-                    useAsync = true;
-                    useSync = true;
-                    break;
-            }
-        }
+        // Read configuration values
+        var server = configuration["Host"];
+        var database = configuration["Database"] ?? "postgres";
+        var port = configuration.GetValue<int>("Port", 5432);
+        // Build connection string
+        var connectionString = $"Host={server};Database={database};Port={port};SSL Mode=Require;";
 
-        try
-        {
-            // Build configuration
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
-                .Build();
-
-            // Read configuration values
-            var server = configuration["Host"];
-            var database = configuration["Database"] ?? "postgres";
-            var port = configuration.GetValue<int>("Port", 5432);
-
-            // Build connection string
-            var connectionString = $"Host={server};Database={database};Port={port};SSL Mode=Require;";
-
-            if (useSync)
-            {
-                await RunSyncMethod(connectionString);
-            }
-
-            if (useAsync)
-            {
-                await RunAsyncMethod(connectionString);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
-        }
-
-        Console.WriteLine("Press any key to exit...");
-        Console.ReadKey();
-    }
-
-    static async Task RunSyncMethod(string connectionString)
-    {
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-        
+
         // We call the extension method to enable Entra authentication for the PostgreSQL database
-        // by acquiring an Azure access token and extracting a username from the token and using
+        // by acquiring an Azure access token, extracting a username from the token, and using
         // the token itself (with the PostgreSQL scope) as the password.
         dataSourceBuilder.UseEntraAuthentication();
 
         using var dataSource = dataSourceBuilder.Build();
         await using var connection = await dataSource.OpenConnectionAsync();
 
-        Console.WriteLine("Executing sync queries...");
-        await RunDatabaseQueries(connection);
-    }
-
-    static async Task RunAsyncMethod(string connectionString)
-    {
-        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-        // Add a detailed comment here
-        await dataSourceBuilder.UseEntraAuthenticationAsync();
-
-        using var dataSource = dataSourceBuilder.Build();
-        await using var connection = await dataSource.OpenConnectionAsync();
-
-        Console.WriteLine("Executing async queries...");
-        await RunDatabaseQueries(connection);
-    }
-
-    static async Task RunDatabaseQueries(NpgsqlConnection connection)
-    {
         // Example query 1: Get PostgreSQL version
         using var cmd1 = new NpgsqlCommand("SELECT version()", connection);
         var version = await cmd1.ExecuteScalarAsync();

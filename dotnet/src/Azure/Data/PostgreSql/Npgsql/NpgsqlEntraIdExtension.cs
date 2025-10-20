@@ -6,6 +6,10 @@ using Npgsql;
 
 namespace Azure.Data.Postgresql.Npgsql;
 
+/// <summary>
+/// Class with extension methods for configuring Entra ID authentication with Npgsql data sources
+/// synchronously and asynchronously.
+/// </summary>
 public static class NpgsqlEntraIdExtension
 {
     private const string AzureDatabaseForPostgresSqlScope = "https://ossrdbms-aad.database.windows.net/.default";
@@ -14,6 +18,13 @@ public static class NpgsqlEntraIdExtension
     private static readonly TokenRequestContext s_azureDBForPostgresTokenRequestContext = new([AzureDatabaseForPostgresSqlScope]);
     private static readonly TokenRequestContext s_managementTokenRequestContext = new([AzureManagementScope]);
 
+    /// <summary>
+    /// Configures the NpgsqlDataSourceBuilder to use Entra ID authentication synchronously.
+    /// </summary>
+    /// <param name="dataSourceBuilder">The NpgsqlDataSourceBuilder to configure.</param>
+    /// <param name="credential">The TokenCredential to use for authentication. If null, DefaultAzureCredential is used.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+    /// <returns>The configured NpgsqlDataSourceBuilder.</returns>
     public static NpgsqlDataSourceBuilder UseEntraAuthentication(this NpgsqlDataSourceBuilder dataSourceBuilder, TokenCredential? credential = default, CancellationToken cancellationToken = default)
     {
         credential ??= new DefaultAzureCredential();
@@ -42,6 +53,13 @@ public static class NpgsqlEntraIdExtension
         return dataSourceBuilder;
     }
 
+    /// <summary>
+    /// Configures the NpgsqlDataSourceBuilder to use Entra ID authentication asynchronously.
+    /// </summary>
+    /// <param name="dataSourceBuilder">The NpgsqlDataSourceBuilder to configure.</param>
+    /// <param name="credential">The TokenCredential to use for authentication. If null, DefaultAzureCredential is used.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the configured NpgsqlDataSourceBuilder.</returns>
     public static async Task<NpgsqlDataSourceBuilder> UseEntraAuthenticationAsync(this NpgsqlDataSourceBuilder dataSourceBuilder, TokenCredential? credential = default, CancellationToken cancellationToken = default)
     {
         credential ??= new DefaultAzureCredential();

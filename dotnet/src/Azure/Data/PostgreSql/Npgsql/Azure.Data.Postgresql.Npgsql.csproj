@@ -1,38 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
-    <LangVersion>default</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>1591;1573</NoWarn>
-    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-  </PropertyGroup>
-
-  <PropertyGroup Label="Package info">
+    <PackageId>Data.Postgresql.Npgsql.Test</PackageId>
     <Authors>Arjun Narendra</Authors>
+    <Version>1.0.1</Version>
     <PackageDescription>
-      Azure Entra ID authentication extension for Npgsql PostgreSQL driver
+      Azure Entra ID authentication extension for Npgsql driver
     </PackageDescription>
-    <RepositoryUrl>https://github.com/v-anarendra_microsoft/entra-id-integration-for-drivers.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <PackageTags>azure;entra;PostgreSQL;Npgsql</PackageTags>
-  <!-- Use SPDX expression instead of embedding file path to avoid NU5019 when relative paths shift -->
-  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>https://github.com/v-anarendra_microsoft/entra-id-integration-for-drivers/releases</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Azure/postgres-entra-auth.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>https://github.com/Azure/postgres-entra-auth/releases</PackageReleaseNotes>
     <Copyright>Copyright 2025-$([System.DateTime]::Now.ToString(yyyy)) Arjun Narendra</Copyright>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
-
-  <!-- Removed explicit license file packaging; relying on SPDX expression above -->
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.44.1" />
     <PackageReference Include="Azure.Identity" Version="1.13.1" />
     <PackageReference Include="Npgsql" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
