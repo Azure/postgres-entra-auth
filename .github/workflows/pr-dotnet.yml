@@ -35,7 +35,7 @@ jobs:
       - name: Test
         if: ${{ always() }}
         working-directory: dotnet
-        run: dotnet test tests/Azure/Data/Postgresql/Npgsql/Azure.Data.Postgresql.Npgsql.Tests.csproj --no-build --configuration Release --logger trx --results-directory TestResults
+        run: dotnet test tests/Azure/Data/Postgresql/Npgsql/Azure.Data.Postgresql.Npgsql.Tests.csproj --configuration Release --logger trx --results-directory TestResults
         
       - name: Pack
         working-directory: dotnet
