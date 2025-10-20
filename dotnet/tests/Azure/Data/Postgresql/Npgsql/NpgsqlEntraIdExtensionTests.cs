@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text;
 using Azure.Core;
+using Azure.Data.Postgresql.Npgsql;
 using FluentAssertions;
 using Moq;
 using Npgsql;
