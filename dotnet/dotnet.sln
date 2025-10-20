@@ -22,7 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Postgresql", "Postgresql", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Npgsql", "Npgsql", "{93934517-16C9-C51A-8F2B-54760F50BDEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.Data.Postgresql.Npgsql", "src\Azure\Data\PostgreSql\Npgsql\Azure.Data.Postgresql.Npgsql.csproj", "{3E862DB4-B843-4361-94B5-8CF34402B511}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.Data.Postgresql.Npgsql", "src\Azure\Data\Postgresql\Npgsql\Azure.Data.Postgresql.Npgsql.csproj", "{3E862DB4-B843-4361-94B5-8CF34402B511}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
