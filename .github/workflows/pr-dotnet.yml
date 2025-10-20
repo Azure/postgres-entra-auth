@@ -28,10 +28,6 @@ jobs:
         working-directory: dotnet
         run: dotnet build --no-restore --configuration Release
         
-      - name: Build Library
-        working-directory: dotnet
-        run: dotnet build src/Azure/Data/PostgreSql/Npgsql/Azure.Data.Postgresql.Npgsql.csproj --configuration Release
-        
       - name: Format check
         if: runner.os != 'Linux'
         working-directory: dotnet
