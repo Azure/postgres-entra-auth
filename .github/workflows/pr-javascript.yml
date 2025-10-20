@@ -1,0 +1,22 @@
+name: PR JavaScript Checks
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'javascript/**'
+      - '.github/workflows/pr-javascript.yml'
+
+jobs:
+  javascript-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install deps
+        working-directory: javascript
+        run: npm install
+      - name: ESLint
+        working-directory: javascript
+        run: npm run lint
