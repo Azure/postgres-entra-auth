@@ -5,7 +5,7 @@ This package provides seamless Azure Entra ID authentication for Python database
 ## Features
 
 - **🔐 Azure Entra ID Authentication**: Automatic token acquisition and refresh for secure database connections
-- **🔄 Multi-Driver Support**: Works with psycopg2, psycopg3, aiopg, asyncpg, and SQLAlchemy
+- **🔄 Multi-Driver Support**: Works with psycopg2, psycopg3, and SQLAlchemy
 - **⚡ Connection Pooling**: Built-in support for both synchronous and asynchronous connection pools
 - **🏗️ Clean Architecture**: Simple package structure with `azurepg_entra.psycopg2`, `azurepg_entra.psycopg3`, and `azurepg_entra.sqlalchemy`
 - **🔄 Automatic Token Management**: Handles token acquisition, validation, and refresh automatically
@@ -29,7 +29,7 @@ Choose the installation option based on which PostgreSQL drivers you need:
 # For psycopg3 (modern psycopg, recommended for new projects)
 pip install "azurepg-entra[psycopg3]"
 
-# For psycopg2 + aiopg (legacy support)
+# For psycopg2 (legacy support)
 pip install "azurepg-entra[psycopg2]"
 
 # For SQLAlchemy with psycopg3 backend
@@ -74,7 +74,7 @@ POSTGRES_DATABASE=<your_database_name>
 
 The repository includes comprehensive working examples in the `samples/` directory:
 
-- **`samples/psycopg2/getting_started/`**: psycopg2 + aiopg examples (legacy driver support)
+- **`samples/psycopg2/getting_started/`**: psycopg2 (legacy driver support)
 - **`samples/psycopg3/getting_started/`**: psycopg3 examples (modern driver, recommended)
 - **`samples/sqlalchemy/getting_started/`**: SQLAlchemy examples with psycopg3 backend
 
