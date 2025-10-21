@@ -386,6 +386,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+application.properties
 
 # Spyder project settings
 .spyderproject
