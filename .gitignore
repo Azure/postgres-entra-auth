@@ -492,6 +492,8 @@ FodyWeavers.xsd
 # NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
+# NuGet package output folder
+**/nupkgs/
 
 # Microsoft Azure ApplicationInsights config file
 ApplicationInsights.config
