@@ -29,7 +29,7 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
 
         await _postgresContainer.StartAsync();
         _connectionString = _postgresContainer.GetConnectionString();
-        
+
         // Set up test users that simulate Azure Database for PostgreSQL users
         await SetupEntraTestUsersAsync();
     }
@@ -145,7 +145,7 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
 
         var builder = new NpgsqlDataSourceBuilder(baseConnectionString);
         var credential = new TestTokenCredential(token);
-        
+
         // Act - Configure Entra authentication (sync or async)
         if (useAsync)
         {
@@ -155,7 +155,7 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
         {
             builder.UseEntraAuthentication(credential);
         }
-        
+
         // Build data source with Entra configuration
         using var dataSource = builder.Build();
 
@@ -169,12 +169,12 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
         // Test basic operations
         using var cmd = new NpgsqlCommand("SELECT current_user, current_database()", connection);
         await using var reader = await cmd.ExecuteReaderAsync();
-        
+
         if (await reader.ReadAsync())
         {
             var currentUser = reader.GetString(0);
             var currentDb = reader.GetString(1);
-            
+
             currentUser.Should().Be(expectedUsername);
             currentDb.Should().Be("testdb");
         }
@@ -186,7 +186,7 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
     {
         // Showcases connecting with an Entra user using UseEntraAuthentication
         // Demonstrates: End-to-end connection with token-based authentication
-        
+
         var testToken = CreateValidJwtToken("test@example.com");
         await TestEntraAuthenticationFlow(testToken, "test@example.com");
     }
@@ -196,7 +196,7 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
     {
         // Showcases connecting with an Entra user using UseEntraAuthenticationAsync
         // Demonstrates: Async version of end-to-end connection with token-based authentication
-        
+
         var testToken = CreateValidJwtToken("test@example.com");
         await TestEntraAuthenticationFlow(testToken, "test@example.com", useAsync: true);
     }
@@ -206,7 +206,7 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
     {
         // Showcases connecting with a managed identity using UseEntraAuthentication
         // Demonstrates: End-to-end MI authentication with token-based authentication
-        
+
         var xmsMirid = "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity";
         var miToken = CreateJwtTokenWithXmsMirid(xmsMirid);
         await TestEntraAuthenticationFlow(miToken, "managed-identity");
@@ -217,7 +217,7 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
     {
         // Showcases connecting with a managed identity using UseEntraAuthenticationAsync
         // Demonstrates: Async version of end-to-end MI authentication with token-based authentication
-        
+
         var xmsMirid = "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity";
         var miToken = CreateJwtTokenWithXmsMirid(xmsMirid);
         await TestEntraAuthenticationFlow(miToken, "managed-identity", useAsync: true);
