@@ -83,6 +83,10 @@ try {
     $depsOk = $LASTEXITCODE -eq 0
     if (-not $depsOk) { Write-CheckResult "Install deps" $false; exit 1 } else { Write-CheckResult "Install deps" $true }
 
+    Write-Host "Installing build tool" -ForegroundColor Blue
+    & $venvPython -m pip install build | Out-Null
+    Write-CheckResult "Install build" ($LASTEXITCODE -eq 0)
+
     # Ruff
     Write-Host "Running Ruff lint" -ForegroundColor Blue
     if ($Verbose) { & $venvPython -m ruff check src tests } else { & $venvPython -m ruff check src tests *> $null }
