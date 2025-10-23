@@ -62,7 +62,7 @@ class TestTokenCredential {
         this._token = token;
     }
     
-    async getToken(scopes) {
+    async getToken(_scopes) {
         const expiresOnTimestamp = Date.now() + 3600000; // 1 hour from now
         return {
             token: this._token,
@@ -148,7 +148,7 @@ describe('Entra ID Extension Docker Integration Tests', function() {
         for (const sql of setupCommands) {
             try {
                 await client.query(sql);
-            } catch (error) {
+            } catch {
                 // Ignore errors if user already exists
             }
         }
@@ -231,8 +231,8 @@ describe('Entra ID Extension Docker Integration Tests', function() {
             const decodedPayload = Buffer.from(paddedPayload, 'base64url').toString('utf8');
             
             return JSON.parse(decodedPayload);
-        } catch (error) {
-            console.error('Error decoding JWT token:', error);
+        } catch {
+            // Token decoding failed - this shouldn't happen in tests with valid tokens
             return null;
         }
     }
