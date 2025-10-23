@@ -10,16 +10,19 @@ import sys
 
 import pytest
 
-# Configure asyncio to use SelectorEventLoop on Windows for psycopg3 compatibility
+# Configure asyncio to use SelectorEventLoop on Windows
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 try:
     from sqlalchemy import create_engine, text
     from sqlalchemy.ext.asyncio import create_async_engine
-    SQLALCHEMY_AVAILABLE = True
-except ImportError:
-    SQLALCHEMY_AVAILABLE = False
+except ImportError as e:
+    # Provide a helpful error message if sqlalchemy dependencies are missing
+    raise ImportError(
+        "sqlalchemy dependencies are not installed. "
+        "Install them with: pip install azurepg-entra[sqlalchemy]"
+    ) from e
 
 from testcontainers.postgres import PostgresContainer
 
@@ -28,13 +31,14 @@ try:
 except ImportError:
     psycopg2 = None
 
+from azurepg_entra.sqlalchemy.async_entra_connection import (
+    enable_entra_authentication_async,
+)
 from azurepg_entra.sqlalchemy.entra_connection import enable_entra_authentication
-from azurepg_entra.sqlalchemy.async_entra_connection import enable_entra_authentication_async
-
 from tests.azure.data.postgresql.test_utils import (
-    create_valid_jwt_token,
-    create_jwt_token_with_xms_mirid,
     TestTokenCredential,
+    create_jwt_token_with_xms_mirid,
+    create_valid_jwt_token,
 )
 
 
@@ -163,7 +167,6 @@ async def assert_async_sqlalchemy_entra_works(
     await engine.dispose()
 
 
-@pytest.mark.skipif(not SQLALCHEMY_AVAILABLE or not psycopg2, reason="SQLAlchemy or psycopg2 not installed")
 class TestSQLAlchemyEntraConnection:
     """Tests for synchronous SQLAlchemy with enable_entra_authentication."""
     
@@ -191,7 +194,6 @@ class TestSQLAlchemyEntraConnection:
         mi_token = create_jwt_token_with_xms_mirid(xms_mirid)
         assert_sqlalchemy_entra_works(base_url, mi_token, "managed-identity")
 
-@pytest.mark.skipif(not SQLALCHEMY_AVAILABLE, reason="SQLAlchemy not installed")
 class TestAsyncSQLAlchemyEntraConnection:
     """Tests for asynchronous SQLAlchemy with enable_entra_authentication_async."""
     

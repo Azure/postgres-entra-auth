@@ -10,18 +10,20 @@ import pytest
 try:
     import psycopg2
     from psycopg2.extensions import parse_dsn
-    PSYCOPG2_AVAILABLE = True
-except ImportError:
-    PSYCOPG2_AVAILABLE = False
+except ImportError as e:
+    # Provide a helpful error message if psycopg2 dependencies are missing
+    raise ImportError(
+        "psycopg2 dependencies are not installed. "
+        "Install them with: pip install azurepg-entra[psycopg2]"
+    ) from e
 
 from testcontainers.postgres import PostgresContainer
 
 from azurepg_entra.psycopg2.entra_connection import EntraConnection
-
 from tests.azure.data.postgresql.test_utils import (
-    create_valid_jwt_token,
-    create_jwt_token_with_xms_mirid,
     TestTokenCredential,
+    create_jwt_token_with_xms_mirid,
+    create_valid_jwt_token,
 )
 
 
@@ -117,7 +119,6 @@ def assert_entra_connection_works(
             assert current_db == "test"
 
 
-@pytest.mark.skipif(not PSYCOPG2_AVAILABLE, reason="psycopg2 not installed")
 class TestPsycopg2EntraConnection:
     """Tests for psycopg2 EntraConnection."""
     

@@ -6,7 +6,7 @@ Common utility functions and test credentials for PostgreSQL Entra ID integratio
 
 import base64
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from azure.core.credentials import AccessToken, TokenCredential
 from azure.core.credentials_async import AsyncTokenCredential
@@ -56,7 +56,7 @@ class TestTokenCredential(TokenCredential):
     
     def get_token(self, *scopes, **kwargs) -> AccessToken:
         """Return a fake access token."""
-        expires_on = datetime.utcnow() + timedelta(hours=1)
+        expires_on = datetime.now(timezone.utc) + timedelta(hours=1)
         return AccessToken(self._token, int(expires_on.timestamp()))
 
 
@@ -68,5 +68,5 @@ class TestAsyncTokenCredential(AsyncTokenCredential):
     
     async def get_token(self, *scopes, **kwargs) -> AccessToken:
         """Return a fake access token asynchronously."""
-        expires_on = datetime.utcnow() + timedelta(hours=1)
+        expires_on = datetime.now(timezone.utc) + timedelta(hours=1)
         return AccessToken(self._token, int(expires_on.timestamp()))

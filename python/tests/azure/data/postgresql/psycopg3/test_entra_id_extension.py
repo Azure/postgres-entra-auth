@@ -7,7 +7,6 @@ These tests demonstrate token-based authentication for psycopg3.
 
 import asyncio
 import sys
-from typing import Dict
 
 import pytest
 
@@ -17,20 +16,22 @@ if sys.platform == "win32":
 
 try:
     from psycopg import Connection
-    PSYCOPG_AVAILABLE = True
-except ImportError:
-    PSYCOPG_AVAILABLE = False
+except ImportError as e:
+    # Provide a helpful error message if psycopg3 dependencies are missing
+    raise ImportError(
+        "psycopg3 dependencies are not installed. "
+        "Install them with: pip install azurepg-entra[psycopg3]"
+    ) from e
 
 from testcontainers.postgres import PostgresContainer
 
-from azurepg_entra.psycopg3.entra_connection import EntraConnection
 from azurepg_entra.psycopg3.async_entra_connection import AsyncEntraConnection
-
+from azurepg_entra.psycopg3.entra_connection import EntraConnection
 from tests.azure.data.postgresql.test_utils import (
-    create_valid_jwt_token,
-    create_jwt_token_with_xms_mirid,
-    TestTokenCredential,
     TestAsyncTokenCredential,
+    TestTokenCredential,
+    create_jwt_token_with_xms_mirid,
+    create_valid_jwt_token,
 )
 
 
@@ -42,7 +43,7 @@ def postgres_container():
 
 
 @pytest.fixture(scope="module")
-def connection_params(postgres_container) -> Dict[str, str]:
+def connection_params(postgres_container) -> dict[str, str]:
     """Fixture to get connection parameters from the container."""
     return {
         "host": postgres_container.get_container_host_ip(),
@@ -96,7 +97,7 @@ def setup_entra_users(connection_params):
 
 
 def assert_entra_connection_works(
-    connection_params: Dict[str, str],
+    connection_params: dict[str, str],
     token: str,
     expected_username: str
 ) -> None:
@@ -119,7 +120,7 @@ def assert_entra_connection_works(
 
 
 async def assert_async_entra_connection_works(
-    connection_params: Dict[str, str],
+    connection_params: dict[str, str],
     token: str,
     expected_username: str
 ) -> None:
@@ -142,7 +143,6 @@ async def assert_async_entra_connection_works(
             assert current_db == "test"
 
 
-@pytest.mark.skipif(not PSYCOPG_AVAILABLE, reason="psycopg3 not installed")
 class TestEntraConnection:
     """Tests for synchronous EntraConnection."""
     
@@ -162,7 +162,6 @@ class TestEntraConnection:
         assert_entra_connection_works(connection_params, mi_token, "managed-identity")
 
 
-@pytest.mark.skipif(not PSYCOPG_AVAILABLE, reason="psycopg3 not installed")
 class TestAsyncEntraConnection:
     """Tests for asynchronous AsyncEntraConnection."""
     
