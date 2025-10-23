@@ -325,6 +325,13 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Test results
+test-results/
+TestResults/
+*.trx
+test-results.json
+test-results.xml
+
 # Translations
 *.mo
 *.pot
@@ -495,6 +502,10 @@ FodyWeavers.xsd
 *.nuget.targets
 # NuGet package output folder
 **/nupkgs/
+
+# Build output directories
+packages/
+dist/
 
 # Microsoft Azure ApplicationInsights config file
 ApplicationInsights.config
