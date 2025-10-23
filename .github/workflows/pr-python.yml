@@ -26,6 +26,5 @@ jobs:
         working-directory: python
         run: python -m mypy src/azurepg_entra/
       - name: Tests
-        if: ${{ always() }}  # adjust if you add tests
         working-directory: python
         run: python -m pytest tests --import-mode=importlib -q
