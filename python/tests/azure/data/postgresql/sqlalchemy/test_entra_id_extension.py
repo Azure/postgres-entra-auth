@@ -1,188 +1,221 @@
 # Copyright (c) Microsoft. All rights reserved.
 
-from unittest.mock import Mock, patch
+"""
+Integration tests showcasing Entra ID authentication with PostgreSQL Docker instance.
+These tests demonstrate token-based authentication for SQLAlchemy engines.
+"""
+
+import asyncio
+import sys
 
 import pytest
 
+# Configure asyncio to use SelectorEventLoop on Windows for psycopg3 compatibility
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-class TestEnableEntraAuthentication:
-    def test_sync_authentication_function_registration(self):
-        """Test that enable_entra_authentication registers event listener successfully."""
-        mock_engine = Mock()
+try:
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.ext.asyncio import create_async_engine
+    SQLALCHEMY_AVAILABLE = True
+except ImportError:
+    SQLALCHEMY_AVAILABLE = False
 
-        with patch("sqlalchemy.event.listens_for") as mock_event_listener:
-            from azurepg_entra.sqlalchemy import enable_entra_authentication
+from testcontainers.postgres import PostgresContainer
 
-            enable_entra_authentication(mock_engine)
+try:
+    import psycopg2
+except ImportError:
+    psycopg2 = None
 
-            # Verify event listener was registered with correct parameters
-            mock_event_listener.assert_called_once_with(mock_engine, "do_connect")
+from azurepg_entra.sqlalchemy.entra_connection import enable_entra_authentication
+from azurepg_entra.sqlalchemy.async_entra_connection import enable_entra_authentication_async
 
-    def test_provide_token_method(self):
-        """Test the provide_token event handler method directly."""
-        mock_engine = Mock()
-
-        # Capture the event handler function
-        captured_handler = None
-
-        def capture_handler(engine, event_name):
-            def decorator(func):
-                nonlocal captured_handler
-                captured_handler = func
-                return func
-
-            return decorator
-
-        with patch("sqlalchemy.event.listens_for", side_effect=capture_handler):
-            with patch(
-                "azurepg_entra.sqlalchemy.entra_connection.get_entra_conninfo"
-            ) as mock_get_creds:
-                mock_get_creds.return_value = {
-                    "user": "test@example.com",
-                    "password": "test_token",
-                }
-
-                from azurepg_entra.sqlalchemy import enable_entra_authentication
-
-                enable_entra_authentication(mock_engine)
-
-                # Test the captured handler directly
-                mock_cparams = {}
-                captured_handler(None, None, None, mock_cparams)
-
-                # Verify credentials were added
-                mock_get_creds.assert_called_once_with(None)
-                assert mock_cparams["user"] == "test@example.com"
-                assert mock_cparams["password"] == "test_token"
-
-    def test_provide_token_skips_existing_credentials(self):
-        """Test that provide_token skips when credentials already exist."""
-        mock_engine = Mock()
-
-        # Capture the event handler function
-        captured_handler = None
-
-        def capture_handler(engine, event_name):
-            def decorator(func):
-                nonlocal captured_handler
-                captured_handler = func
-                return func
-
-            return decorator
-
-        with patch("sqlalchemy.event.listens_for", side_effect=capture_handler):
-            with patch(
-                "azurepg_entra.sqlalchemy.entra_connection.get_entra_conninfo"
-            ) as mock_get_creds:
-                from azurepg_entra.sqlalchemy import enable_entra_authentication
-
-                enable_entra_authentication(mock_engine)
-
-                # Test with existing credentials
-                mock_cparams = {
-                    "user": "existing@example.com",
-                    "password": "existing_password",
-                }
-                captured_handler(None, None, None, mock_cparams)
-
-                # Verify get_entra_conninfo was not called
-                mock_get_creds.assert_not_called()
-                assert mock_cparams["user"] == "existing@example.com"
-                assert mock_cparams["password"] == "existing_password"
-
-    def test_async_authentication_function_registration(self):
-        """Test that enable_entra_authentication_async registers event listener successfully."""
-        mock_async_engine = Mock()
-        mock_sync_engine = Mock()
-        mock_async_engine.sync_engine = mock_sync_engine
-
-        with patch("sqlalchemy.event.listens_for") as mock_event_listener:
-            from azurepg_entra.sqlalchemy import enable_entra_authentication_async
-
-            enable_entra_authentication_async(mock_async_engine)
-
-            # Verify event listener was registered on sync_engine
-            mock_event_listener.assert_called_once_with(mock_sync_engine, "do_connect")
-
-    def test_provide_token_async_method(self):
-        """Test the provide_token_async event handler method directly."""
-        mock_async_engine = Mock()
-        mock_sync_engine = Mock()
-        mock_async_engine.sync_engine = mock_sync_engine
-
-        # Capture the event handler function
-        captured_handler = None
-
-        def capture_handler(engine, event_name):
-            def decorator(func):
-                nonlocal captured_handler
-                captured_handler = func
-                return func
-
-            return decorator
-
-        with patch("sqlalchemy.event.listens_for", side_effect=capture_handler):
-            with patch(
-                "azurepg_entra.sqlalchemy.async_entra_connection.get_entra_conninfo"
-            ) as mock_get_creds:
-                mock_get_creds.return_value = {
-                    "user": "test@example.com",
-                    "password": "test_token",
-                }
-
-                from azurepg_entra.sqlalchemy import enable_entra_authentication_async
-
-                enable_entra_authentication_async(mock_async_engine)
-
-                # Test the captured handler directly
-                mock_cparams = {}
-                captured_handler(None, None, None, mock_cparams)
-
-                # Verify credentials were added
-                mock_get_creds.assert_called_once_with(None)
-                assert mock_cparams["user"] == "test@example.com"
-                assert mock_cparams["password"] == "test_token"
-
-    def test_provide_token_async_skips_existing_credentials(self):
-        """Test that provide_token_async skips when credentials already exist."""
-        mock_async_engine = Mock()
-        mock_sync_engine = Mock()
-        mock_async_engine.sync_engine = mock_sync_engine
-
-        # Capture the event handler function
-        captured_handler = None
-
-        def capture_handler(engine, event_name):
-            def decorator(func):
-                nonlocal captured_handler
-                captured_handler = func
-                return func
-
-            return decorator
-
-        with patch("sqlalchemy.event.listens_for", side_effect=capture_handler):
-            with patch(
-                "azurepg_entra.sqlalchemy.async_entra_connection.get_entra_conninfo"
-            ) as mock_get_creds:
-                from azurepg_entra.sqlalchemy import enable_entra_authentication_async
-
-                enable_entra_authentication_async(mock_async_engine)
-
-                # Test with existing credentials
-                mock_cparams = {
-                    "user": "existing@example.com",
-                    "password": "existing_password",
-                }
-                captured_handler(None, None, None, mock_cparams)
-
-                # Verify get_entra_conninfo was not called (credentials already exist)
-                mock_get_creds.assert_not_called()
-                assert mock_cparams["user"] == "existing@example.com"
-                assert mock_cparams["password"] == "existing_password"
+from tests.azure.data.postgresql.test_utils import (
+    create_valid_jwt_token,
+    create_jwt_token_with_xms_mirid,
+    TestTokenCredential,
+)
 
 
-if __name__ == "__main__":
-    import sys
+@pytest.fixture(scope="module")
+def postgres_container():
+    """Fixture to start a PostgreSQL container for the test module."""
+    with PostgresContainer("postgres:15") as container:
+        yield container
 
-    exit_code = pytest.main([__file__, "-v", "--tb=short"])
-    sys.exit(exit_code)
+
+@pytest.fixture(scope="module")
+def connection_url(postgres_container) -> str:
+    """Fixture to get SQLAlchemy connection URL from the container."""
+    return (
+        f"postgresql+psycopg2://{postgres_container.username}:{postgres_container.password}"
+        f"@{postgres_container.get_container_host_ip()}:{postgres_container.get_exposed_port(5432)}"
+        f"/{postgres_container.dbname}"
+    )
+
+
+@pytest.fixture(scope="module")
+def async_connection_url(postgres_container) -> str:
+    """Fixture to get async SQLAlchemy connection URL from the container."""
+    return (
+        f"postgresql+psycopg://{postgres_container.username}:{postgres_container.password}"
+        f"@{postgres_container.get_container_host_ip()}:{postgres_container.get_exposed_port(5432)}"
+        f"/{postgres_container.dbname}"
+    )
+
+
+@pytest.fixture(scope="module")
+def setup_entra_users(connection_url):
+    """Setup test users with JWT tokens as passwords."""
+    # Generate JWT tokens for each user
+    test_user_token = create_valid_jwt_token("test@example.com")
+    managed_identity_token = create_jwt_token_with_xms_mirid(
+        "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity"
+    )
+    fallback_user_token = create_valid_jwt_token("fallback@example.com")
+    
+    setup_commands = [
+        f'CREATE USER "test@example.com" WITH PASSWORD \'{test_user_token}\';',
+        f'CREATE USER "managed-identity" WITH PASSWORD \'{managed_identity_token}\';',
+        f'CREATE USER "fallback@example.com" WITH PASSWORD \'{fallback_user_token}\';',
+        'GRANT CONNECT ON DATABASE test TO "test@example.com";',
+        'GRANT CONNECT ON DATABASE test TO "managed-identity";',
+        'GRANT CONNECT ON DATABASE test TO "fallback@example.com";',
+        'GRANT ALL PRIVILEGES ON DATABASE test TO "test@example.com";',
+        'GRANT ALL PRIVILEGES ON DATABASE test TO "managed-identity";',
+        'GRANT ALL PRIVILEGES ON DATABASE test TO "fallback@example.com";',
+        'GRANT ALL ON SCHEMA public TO "test@example.com";',
+        'GRANT ALL ON SCHEMA public TO "managed-identity";',
+        'GRANT ALL ON SCHEMA public TO "fallback@example.com";',
+        'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "test@example.com";',
+        'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "managed-identity";',
+        'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "fallback@example.com";',
+        'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "test@example.com";',
+        'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "managed-identity";',
+        'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "fallback@example.com";',
+    ]
+    
+    engine = create_engine(connection_url)
+    with engine.connect() as conn:
+        for sql in setup_commands:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+            except Exception:
+                # Ignore errors if user already exists
+                conn.rollback()
+    engine.dispose()
+
+
+def assert_sqlalchemy_entra_works(
+    base_url: str,
+    token: str,
+    expected_username: str
+) -> None:
+    """Helper to test synchronous SQLAlchemy Entra connection works end-to-end.
+    
+    Verifies username extraction, connection establishment, and database operations.
+    """
+    # Create credential
+    credential = TestTokenCredential(token)
+    
+    # Create engine with Entra authentication
+    engine = create_engine(base_url, connect_args={"credential": credential})
+    enable_entra_authentication(engine)
+    
+    # Connect and verify
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT current_user, current_database()"))
+        current_user, current_db = result.fetchone()
+        
+        assert current_user == expected_username
+        assert current_db == "test"
+    
+    engine.dispose()
+
+
+async def assert_async_sqlalchemy_entra_works(
+    base_url: str,
+    token: str,
+    expected_username: str
+) -> None:
+    """Helper to test asynchronous SQLAlchemy Entra connection works end-to-end.
+    
+    Verifies username extraction, connection establishment, and database operations.
+    """
+    # Create credential
+    credential = TestTokenCredential(token)
+    
+    # Create async engine with Entra authentication
+    engine = create_async_engine(base_url, connect_args={"credential": credential})
+    enable_entra_authentication_async(engine)
+    
+    # Connect and verify
+    async with engine.connect() as conn:
+        result = await conn.execute(text("SELECT current_user, current_database()"))
+        row = result.fetchone()
+        current_user, current_db = row
+        
+        assert current_user == expected_username
+        assert current_db == "test"
+    
+    await engine.dispose()
+
+
+@pytest.mark.skipif(not SQLALCHEMY_AVAILABLE or not psycopg2, reason="SQLAlchemy or psycopg2 not installed")
+class TestSQLAlchemyEntraConnection:
+    """Tests for synchronous SQLAlchemy with enable_entra_authentication."""
+    
+    def test_connect_with_entra_user(self, connection_url, setup_entra_users):
+        """Showcases connecting with an Entra user using enable_entra_authentication.
+        Demonstrates: End-to-end connection with token-based authentication.
+        """
+        # Remove credentials from URL
+        # Format: postgresql+psycopg2://user:pass@host:port/db -> postgresql+psycopg2://host:port/db
+        parts = connection_url.split('@')
+        base_url = f"postgresql+psycopg2://{parts[1]}"
+        
+        test_token = create_valid_jwt_token("test@example.com")
+        assert_sqlalchemy_entra_works(base_url, test_token, "test@example.com")
+    
+    def test_connect_with_managed_identity(self, connection_url, setup_entra_users):
+        """Showcases connecting with a managed identity using enable_entra_authentication.
+        Demonstrates: End-to-end MI authentication with token-based authentication.
+        """
+        # Remove credentials from URL
+        parts = connection_url.split('@')
+        base_url = f"postgresql+psycopg2://{parts[1]}"
+        
+        xms_mirid = "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity"
+        mi_token = create_jwt_token_with_xms_mirid(xms_mirid)
+        assert_sqlalchemy_entra_works(base_url, mi_token, "managed-identity")
+
+@pytest.mark.skipif(not SQLALCHEMY_AVAILABLE, reason="SQLAlchemy not installed")
+class TestAsyncSQLAlchemyEntraConnection:
+    """Tests for asynchronous SQLAlchemy with enable_entra_authentication_async."""
+    
+    @pytest.mark.asyncio
+    async def test_connect_with_entra_user_async(self, async_connection_url, setup_entra_users):
+        """Showcases connecting with an Entra user using enable_entra_authentication_async.
+        Demonstrates: Async version of end-to-end connection with token-based authentication.
+        """
+        # Remove credentials from URL
+        parts = async_connection_url.split('@')
+        base_url = f"postgresql+psycopg://{parts[1]}"
+        
+        test_token = create_valid_jwt_token("test@example.com")
+        await assert_async_sqlalchemy_entra_works(base_url, test_token, "test@example.com")
+    
+    @pytest.mark.asyncio
+    async def test_connect_with_managed_identity_async(self, async_connection_url, setup_entra_users):
+        """Showcases connecting with a managed identity using enable_entra_authentication_async.
+        Demonstrates: Async version of end-to-end MI authentication with token-based authentication.
+        """
+        # Remove credentials from URL
+        parts = async_connection_url.split('@')
+        base_url = f"postgresql+psycopg://{parts[1]}"
+        
+        xms_mirid = "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity"
+        mi_token = create_jwt_token_with_xms_mirid(xms_mirid)
+        await assert_async_sqlalchemy_entra_works(base_url, mi_token, "managed-identity")

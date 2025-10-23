@@ -67,3 +67,7 @@ def enable_entra_authentication_async(engine: AsyncEngine) -> None:
                 cparams["user"] = entra_creds["user"]
             if not has_password and "password" in entra_creds:
                 cparams["password"] = entra_creds["password"]
+
+        # Strip helper-only param before DBAPI connect to avoid 'invalid connection option'
+        if "credential" in cparams:
+            del cparams["credential"]
