@@ -22,7 +22,9 @@ jobs:
         run: npm run lint
       - name: Tests
         working-directory: javascript
-        run: npm test
+        run: |
+          mkdir -p test-results
+          npm test -- --reporter json --reporter-option output=test-results/test-results.json
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
