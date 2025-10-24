@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import { Sequelize } from 'sequelize';
 import { GenericContainer } from 'testcontainers';
 import pg from 'pg';
-import { configureEntraIdAuth, getEntraTokenPassword } from '../../../../src/entra_id_extension.js';
+import { configureEntraIdAuth, getEntraTokenPassword } from '../src/entra_id_extension.js';
 
 const { Client } = pg;
 
