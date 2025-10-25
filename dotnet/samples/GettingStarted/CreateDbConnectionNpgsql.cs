@@ -15,11 +15,24 @@ public class CreateDbConnectionNpgsql
     {
         Console.WriteLine("=== Getting Started with Azure Entra Authentication for PostgreSQL ===\n");
 
+        // Build configuration once
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Environment.CurrentDirectory)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables()
+            .Build();
+
+        // Read configuration values and build connection string once
+        var server = configuration["Host"];
+        var database = configuration["Database"] ?? "postgres";
+        var port = configuration.GetValue<int>("Port", 5432);
+        var connectionString = $"Host={server};Database={database};Port={port};SSL Mode=Require;";
+
         Console.WriteLine("--- Testing UseEntraAuthentication (sync) ---");
-        await ConnectWithEntraAuthentication(useAsync: false);
+        await ConnectWithEntraAuthentication(connectionString, useAsync: false);
 
         Console.WriteLine("\n--- Testing UseEntraAuthenticationAsync ---");
-        await ConnectWithEntraAuthentication(useAsync: true);
+        await ConnectWithEntraAuthentication(connectionString, useAsync: true);
 
         Console.WriteLine("\n=== Sample completed ===");
     }
@@ -27,22 +40,10 @@ public class CreateDbConnectionNpgsql
     /// <summary>
     /// Show how to create a connection to the database with Entra authentication and execute some prompts.
     /// </summary>
+    /// <param name="connectionString">The PostgreSQL connection string</param>
     /// <param name="useAsync">If true, uses UseEntraAuthenticationAsync; otherwise uses UseEntraAuthentication</param>
-    public static async Task ConnectWithEntraAuthentication(bool useAsync = false)
+    public static async Task ConnectWithEntraAuthentication(string connectionString, bool useAsync = false)
     {
-        // Build configuration
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Environment.CurrentDirectory)
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddEnvironmentVariables()
-            .Build();
-
-        // Read configuration values
-        var server = configuration["Host"];
-        var database = configuration["Database"] ?? "postgres";
-        var port = configuration.GetValue<int>("Port", 5432);
-        // Build connection string
-        var connectionString = $"Host={server};Database={database};Port={port};SSL Mode=Require;";
 
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 
