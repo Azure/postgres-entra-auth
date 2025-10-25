@@ -47,9 +47,9 @@ public class CreateDbConnectionNpgsql
 
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 
-        // We call the extension method to enable Entra authentication for the PostgreSQL database
-        // by acquiring an Azure access token, extracting a username from the token, and using
-        // the token itself (with the PostgreSQL scope) as the password.
+        // Here, we use the appropriate extension method provided by NpgsqlDataSourceBuilderExtensions.cs
+        // to enable Entra Authentication. This will handle token aquisition, username extraction, and
+        // token refresh as needed. 
         if (useAsync)
         {
             await dataSourceBuilder.UseEntraAuthenticationAsync();
