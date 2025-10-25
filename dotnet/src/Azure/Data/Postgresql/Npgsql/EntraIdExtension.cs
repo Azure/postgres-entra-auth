@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+using System.Text;
 using System.Text.Json;
 using Azure.Core;
 using Azure.Identity;
