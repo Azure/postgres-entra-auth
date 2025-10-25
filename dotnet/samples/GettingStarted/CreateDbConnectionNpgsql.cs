@@ -14,13 +14,13 @@ public class CreateDbConnectionNpgsql
     public static async Task Main(string[] args)
     {
         Console.WriteLine("=== Getting Started with Azure Entra Authentication for PostgreSQL ===\n");
-        
+
         Console.WriteLine("--- Testing UseEntraAuthentication (sync) ---");
         await ConnectWithEntraAuthentication(useAsync: false);
-        
+
         Console.WriteLine("\n--- Testing UseEntraAuthenticationAsync ---");
         await ConnectWithEntraAuthentication(useAsync: true);
-        
+
         Console.WriteLine("\n=== Sample completed ===");
     }
 
