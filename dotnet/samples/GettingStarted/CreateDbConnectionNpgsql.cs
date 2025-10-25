@@ -3,20 +3,32 @@
 using Npgsql;
 using Azure.Data.Postgresql.Npgsql;
 using Microsoft.Extensions.Configuration;
-using Xunit;
 
 namespace GettingStarted;
 
 /// <summary>
 /// This example enables Entra authentication before connecting to the database via NpgsqlConnection.
 /// </summary>
-public sealed class Step1_Connect_With_Entra_Authentication()
+public class CreateDbConnectionNpgsql
 {
+    public static async Task Main(string[] args)
+    {
+        Console.WriteLine("=== Getting Started with Azure Entra Authentication for PostgreSQL ===\n");
+        
+        Console.WriteLine("--- Testing UseEntraAuthentication (sync) ---");
+        await ConnectWithEntraAuthentication(useAsync: false);
+        
+        Console.WriteLine("\n--- Testing UseEntraAuthenticationAsync ---");
+        await ConnectWithEntraAuthentication(useAsync: true);
+        
+        Console.WriteLine("\n=== Sample completed ===");
+    }
+
     /// <summary>
     /// Show how to create a connection to the database with Entra authentication and execute some prompts.
     /// </summary>
-    [Fact]
-    public async Task ConnectWithEntraAuthentication()
+    /// <param name="useAsync">If true, uses UseEntraAuthenticationAsync; otherwise uses UseEntraAuthentication</param>
+    public static async Task ConnectWithEntraAuthentication(bool useAsync = false)
     {
         // Build configuration
         var configuration = new ConfigurationBuilder()
@@ -37,7 +49,14 @@ public sealed class Step1_Connect_With_Entra_Authentication()
         // We call the extension method to enable Entra authentication for the PostgreSQL database
         // by acquiring an Azure access token, extracting a username from the token, and using
         // the token itself (with the PostgreSQL scope) as the password.
-        dataSourceBuilder.UseEntraAuthentication();
+        if (useAsync)
+        {
+            await dataSourceBuilder.UseEntraAuthenticationAsync();
+        }
+        else
+        {
+            dataSourceBuilder.UseEntraAuthentication();
+        }
 
         using var dataSource = dataSourceBuilder.Build();
         await using var connection = await dataSource.OpenConnectionAsync();
