@@ -42,7 +42,7 @@ public class CreateDbConnectionNpgsql
     /// </summary>
     /// <param name="connectionString">The PostgreSQL connection string</param>
     /// <param name="useAsync">If true, uses UseEntraAuthenticationAsync; otherwise uses UseEntraAuthentication</param>
-    public static async Task ConnectWithEntraAuthentication(string connectionString, bool useAsync = false)
+    private static async Task ConnectWithEntraAuthentication(string connectionString, bool useAsync = false)
     {
 
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
