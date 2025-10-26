@@ -38,15 +38,9 @@ def main_sync() -> None:
     enable_entra_authentication(engine)
 
     with engine.connect() as conn:
-        # Query 1
         result = conn.execute(text("SELECT now()"))
         row = result.fetchone()
         print(f"Sync - Database time: {row[0] if row else 'Unknown'}")
-
-        # Query 2
-        result = conn.execute(text("SELECT current_user"))
-        row = result.fetchone()
-        print(f"Sync - Connected as: {row[0] if row else 'Unknown'}")
 
     # Clean up the engine
     engine.dispose()
@@ -67,15 +61,9 @@ async def main_async() -> None:
     enable_entra_authentication_async(engine)
 
     async with engine.connect() as conn:
-        # Query 1
         result = await conn.execute(text("SELECT now()"))
         row = result.fetchone()
         print(f"Async Core - Database time: {row[0] if row else 'Unknown'}")
-
-        # Query 2
-        result = await conn.execute(text("SELECT current_user"))
-        row = result.fetchone()
-        print(f"Async Core - Connected as: {row[0] if row else 'Unknown'}")
 
     # Clean up the engine
     await engine.dispose()

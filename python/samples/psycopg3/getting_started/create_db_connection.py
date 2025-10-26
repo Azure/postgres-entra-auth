@@ -34,15 +34,9 @@ def main_sync() -> None:
         connection_class=EntraConnection,
     )
     with pool, pool.connection() as conn, conn.cursor() as cur:
-        # Query 1
         cur.execute("SELECT now()")
         result = cur.fetchone()
         print(f"Sync - Database time: {result}")
-
-        # Query 2
-        cur.execute("SELECT current_user")
-        user = cur.fetchone()
-        print(f"Sync - Connected as: {user[0] if user else 'Unknown'}")
 
 
 async def main_async() -> None:
@@ -61,15 +55,9 @@ async def main_async() -> None:
         connection_class=AsyncEntraConnection,
     )
     async with pool, pool.connection() as conn, conn.cursor() as cur:
-        # Query 1
         await cur.execute("SELECT now()")
         result = await cur.fetchone()
         print(f"Async - Database time: {result}")
-
-        # Query 2
-        await cur.execute("SELECT current_user")
-        user = await cur.fetchone()
-        print(f"Async - Connected as: {user[0] if user else 'Unknown'}")
 
 
 async def main(mode: str = "async") -> None:

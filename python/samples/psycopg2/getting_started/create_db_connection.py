@@ -34,10 +34,6 @@ def main() -> None:
             cur.execute("SELECT now()")
             result = cur.fetchone()
             print(f"Database time: {result[0]}")
-
-            cur.execute("SELECT current_user")
-            user = cur.fetchone()
-            print(f"Connected as: {user[0]}")
     finally:
         connection_pool.putconn(conn)
         connection_pool.closeall()
