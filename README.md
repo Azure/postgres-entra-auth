@@ -19,9 +19,9 @@ This open-source project provides libraries in Python, Java, C#, and JavaScript 
 ## Supported Languages
 
 - Python
-- Java
 - C#
 - JavaScript
+- Java (see note below)
 
 ## Project Structure
 
@@ -31,26 +31,28 @@ This repository is organized by programming language, with each language having 
 ├── dotnet/         # .NET implementation
 │   ├── src/        # Source code
 │   ├── samples/    # Code samples and examples
-│   ├── tests/      # Unit tests
+│   ├── tests/      # Integration tests
 │   └── README.md   # .NET-specific documentation
 ├── python/         # Python implementation
 │   ├── src/        # Source code
 │   ├── samples/    # Code samples and examples
-│   ├── tests/      # Unit tests
+│   ├── tests/      # Integration tests
 │   └── README.md   # Python-specific documentation
-├── java/           # Java implementation
-│   ├── src/        # Source code
-│   ├── samples/    # Code samples and examples
-│   ├── tests/      # Unit tests
-│   └── docs/       # Java-specific documentation
 └── javascript/     # JavaScript implementation
     ├── src/        # Source code
     ├── samples/    # Code samples and examples
-    ├── tests/      # Unit tests
-    └── docs/       # JavaScript-specific documentation
+    ├── tests/      # Integration tests
+    └── README.md   # JavaScript-specific documentation
 ```
 
-**Getting Started**: Navigate to the folder for your preferred programming language to find source code, usage examples, and language-specific documentation.
+**Note**: Java samples have been moved to a separate repository: [Azure-Samples/Access-token-refresh-samples](https://github.com/Azure-Samples/Access-token-refresh-samples)
+
+**Getting Started**: Navigate to the folder for your preferred programming language to find source code, usage examples, and language-specific documentation:
+
+- [.NET Documentation & Samples](./dotnet/README.md)
+- [Python Documentation & Samples](./python/README.md)
+- [JavaScript Documentation & Samples](./javascript/README.md)
+- [Java Samples](https://github.com/Azure-Samples/Access-token-refresh-samples)
 
 ## Code of Conduct
 
