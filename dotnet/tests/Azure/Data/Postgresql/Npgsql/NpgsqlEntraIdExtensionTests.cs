@@ -6,6 +6,8 @@ using Moq;
 using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
+using static Azure.Data.Postgresql.Npgsql.DockerTests.TestJwtTokenGenerator;
+using static Azure.Data.Postgresql.Npgsql.DockerTests.TestUsers;
 
 namespace Azure.Data.Postgresql.Npgsql.DockerTests;
 
@@ -47,33 +49,33 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
         await connection.OpenAsync();
 
         // Generate JWT tokens for each user
-        var testUserToken = CreateValidJwtToken("test@example.com");
-        var managedIdentityToken = CreateJwtTokenWithXmsMirid("/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity");
-        var fallbackUserToken = CreateValidJwtToken("fallback@example.com");
+        var testUserToken = CreateValidJwtToken(EntraUser);
+        var managedIdentityToken = CreateJwtTokenWithXmsMirid(ManagedIdentityPath);
+        var fallbackUserToken = CreateValidJwtToken(FallbackUser);
 
         var setupCommands = new[]
         {
-            $@"CREATE USER ""test@example.com"" WITH PASSWORD '{testUserToken}';",
-            $@"CREATE USER ""managed-identity"" WITH PASSWORD '{managedIdentityToken}';",
-            $@"CREATE USER ""fallback@example.com"" WITH PASSWORD '{fallbackUserToken}';",
-            @"GRANT CONNECT ON DATABASE testdb TO ""test@example.com"";",
-            @"GRANT CONNECT ON DATABASE testdb TO ""managed-identity"";",
-            @"GRANT CONNECT ON DATABASE testdb TO ""fallback@example.com"";",
-            @"GRANT ALL PRIVILEGES ON DATABASE testdb TO ""test@example.com"";",
-            @"GRANT ALL PRIVILEGES ON DATABASE testdb TO ""managed-identity"";",
-            @"GRANT ALL PRIVILEGES ON DATABASE testdb TO ""fallback@example.com"";",
+            $@"CREATE USER ""{EntraUser}"" WITH PASSWORD '{testUserToken}';",
+            $@"CREATE USER ""{ManagedIdentityName}"" WITH PASSWORD '{managedIdentityToken}';",
+            $@"CREATE USER ""{FallbackUser}"" WITH PASSWORD '{fallbackUserToken}';",
+            $@"GRANT CONNECT ON DATABASE testdb TO ""{EntraUser}"";",
+            $@"GRANT CONNECT ON DATABASE testdb TO ""{ManagedIdentityName}"";",
+            $@"GRANT CONNECT ON DATABASE testdb TO ""{FallbackUser}"";",
+            $@"GRANT ALL PRIVILEGES ON DATABASE testdb TO ""{EntraUser}"";",
+            $@"GRANT ALL PRIVILEGES ON DATABASE testdb TO ""{ManagedIdentityName}"";",
+            $@"GRANT ALL PRIVILEGES ON DATABASE testdb TO ""{FallbackUser}"";",
             // Grant schema permissions for creating tables
-            @"GRANT ALL ON SCHEMA public TO ""test@example.com"";",
-            @"GRANT ALL ON SCHEMA public TO ""managed-identity"";",
-            @"GRANT ALL ON SCHEMA public TO ""fallback@example.com"";",
+            $@"GRANT ALL ON SCHEMA public TO ""{EntraUser}"";",
+            $@"GRANT ALL ON SCHEMA public TO ""{ManagedIdentityName}"";",
+            $@"GRANT ALL ON SCHEMA public TO ""{FallbackUser}"";",
             // Grant permissions on all tables in the schema
-            @"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ""test@example.com"";",
-            @"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ""managed-identity"";",
-            @"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ""fallback@example.com"";",
+            $@"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ""{EntraUser}"";",
+            $@"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ""{ManagedIdentityName}"";",
+            $@"GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ""{FallbackUser}"";",
             // Grant permissions on all sequences in the schema
-            @"GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ""test@example.com"";",
-            @"GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ""managed-identity"";",
-            @"GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ""fallback@example.com"";"
+            $@"GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ""{EntraUser}"";",
+            $@"GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ""{ManagedIdentityName}"";",
+            $@"GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ""{FallbackUser}"";"
         };
 
         foreach (var sql in setupCommands)
@@ -83,50 +85,18 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
                 using var cmd = new NpgsqlCommand(sql, connection);
                 await cmd.ExecuteNonQueryAsync();
             }
-            catch
+            catch (PostgresException ex) when (ex.SqlState == "42710")
             {
-                // Ignore errors if user already exists
+                // User already exists, this is expected in test reruns
+                continue;
             }
-        }
-    }
-
-    #region Test Utilities
-    private static string CreateBase64UrlString(string input)
-    {
-        var bytes = Encoding.UTF8.GetBytes(input);
-        var base64 = Convert.ToBase64String(bytes);
-        return base64.TrimEnd('=').Replace('+', '-').Replace('/', '_');
-    }
-
-    private static string CreateValidJwtToken(string username) =>
-        string.Join('.',
-            CreateBase64UrlString("{\"alg\":\"RS256\",\"typ\":\"JWT\"}"),
-            CreateBase64UrlString($"{{\"upn\":\"{username}\",\"iat\":1234567890,\"exp\":9999999999}}"),
-            "fake-signature");
-
-    private static string CreateJwtTokenWithXmsMirid(string xms_mirid) =>
-        string.Join('.',
-            CreateBase64UrlString("{\"alg\":\"RS256\",\"typ\":\"JWT\"}"),
-            CreateBase64UrlString($"{{\"xms_mirid\":\"{xms_mirid}\",\"iat\":1234567890,\"exp\":9999999999}}"),
-            "fake-signature");
-
-    private class TestTokenCredential : TokenCredential
-    {
-        private readonly string _token;
-
-        public TestTokenCredential(string token)
-        {
-            _token = token;
-        }
-
-        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
-        {
-            return new AccessToken(_token, DateTimeOffset.UtcNow.AddHours(1));
-        }
-
-        public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
-        {
-            return new ValueTask<AccessToken>(new AccessToken(_token, DateTimeOffset.UtcNow.AddHours(1)));
+            catch (Exception ex)
+            {
+                // Log unexpected errors to help debugging
+                Console.Error.WriteLine($"Setup command failed: {sql}");
+                Console.Error.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
         }
     }
 
@@ -179,47 +149,324 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
             currentDb.Should().Be("testdb");
         }
     }
-    #endregion
 
     [Fact]
     public async Task ConnectWithEntraUser()
     {
         // Showcases connecting with an Entra user using UseEntraAuthentication
-        // Demonstrates: End-to-end connection with token-based authentication
 
-        var testToken = CreateValidJwtToken("test@example.com");
-        await TestEntraAuthenticationFlow(testToken, "test@example.com");
+        var testToken = CreateValidJwtToken(EntraUser);
+        await TestEntraAuthenticationFlow(testToken, EntraUser);
     }
 
     [Fact]
     public async Task ConnectWithEntraUser_Async()
     {
         // Showcases connecting with an Entra user using UseEntraAuthenticationAsync
-        // Demonstrates: Async version of end-to-end connection with token-based authentication
 
-        var testToken = CreateValidJwtToken("test@example.com");
-        await TestEntraAuthenticationFlow(testToken, "test@example.com", useAsync: true);
+        var testToken = CreateValidJwtToken(EntraUser);
+        await TestEntraAuthenticationFlow(testToken, EntraUser, useAsync: true);
     }
 
     [Fact]
     public async Task ConnectWithManagedIdentity()
     {
         // Showcases connecting with a managed identity using UseEntraAuthentication
-        // Demonstrates: End-to-end MI authentication with token-based authentication
 
-        var xmsMirid = "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity";
-        var miToken = CreateJwtTokenWithXmsMirid(xmsMirid);
-        await TestEntraAuthenticationFlow(miToken, "managed-identity");
+        var miToken = CreateJwtTokenWithXmsMirid(ManagedIdentityPath);
+        await TestEntraAuthenticationFlow(miToken, ManagedIdentityName);
     }
 
     [Fact]
     public async Task ConnectWithManagedIdentity_Async()
     {
         // Showcases connecting with a managed identity using UseEntraAuthenticationAsync
-        // Demonstrates: Async version of end-to-end MI authentication with token-based authentication
 
-        var xmsMirid = "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity";
-        var miToken = CreateJwtTokenWithXmsMirid(xmsMirid);
-        await TestEntraAuthenticationFlow(miToken, "managed-identity", useAsync: true);
+        var miToken = CreateJwtTokenWithXmsMirid(ManagedIdentityPath);
+        await TestEntraAuthenticationFlow(miToken, ManagedIdentityName, useAsync: true);
+    }
+
+    [Fact]
+    public void ThrowMeaningfulErrorForInvalidJwtTokenFormat()
+    {
+        // Showcases error handling for invalid JWT token format
+
+        var invalidToken = "not.a.valid.token";
+        var credential = new TestTokenCredential(invalidToken);
+
+        var baseConnectionString = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Username = null,
+            Password = null
+        }.ToString();
+
+        var builder = new NpgsqlDataSourceBuilder(baseConnectionString);
+
+        var act = () => builder.UseEntraAuthentication(credential);
+
+        act.Should().Throw<Exception>();
+    }
+
+    [Fact]
+    public async Task ThrowMeaningfulErrorForInvalidJwtTokenFormat_Async()
+    {
+        // Showcases error handling for invalid JWT token format (async)
+
+        var invalidToken = "not.a.valid.token";
+        var credential = new TestTokenCredential(invalidToken);
+
+        var baseConnectionString = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Username = null,
+            Password = null
+        }.ToString();
+
+        var builder = new NpgsqlDataSourceBuilder(baseConnectionString);
+
+        var act = async () => await builder.UseEntraAuthenticationAsync(credential);
+
+        await act.Should().ThrowAsync<Exception>();
+    }
+
+    [Fact]
+    public async Task HandleConnectionFailureWithClearError()
+    {
+        // Showcases error handling for connection failures
+
+        var testToken = CreateValidJwtToken(EntraUser);
+        var credential = new TestTokenCredential(testToken);
+
+        var invalidConnectionString = "Host=invalid-host;Port=9999;Database=testdb";
+        var builder = new NpgsqlDataSourceBuilder(invalidConnectionString);
+        builder.UseEntraAuthentication(credential);
+
+        using var dataSource = builder.Build();
+
+        var act = async () => await dataSource.OpenConnectionAsync();
+
+        await act.Should().ThrowAsync<Exception>();
+    }
+
+    [Fact]
+    public async Task HandleConnectionFailureWithClearError_Async()
+    {
+        // Showcases error handling for connection failures (async)
+
+        var testToken = CreateValidJwtToken(EntraUser);
+        var credential = new TestTokenCredential(testToken);
+
+        var invalidConnectionString = "Host=invalid-host;Port=9999;Database=testdb";
+        var builder = new NpgsqlDataSourceBuilder(invalidConnectionString);
+        await builder.UseEntraAuthenticationAsync(credential);
+
+        using var dataSource = builder.Build();
+
+        var act = async () => await dataSource.OpenConnectionAsync();
+
+        await act.Should().ThrowAsync<Exception>();
+    }
+
+    [Fact]
+    public void TokenCachingBehavior()
+    {
+        // Showcases that credentials are invoked for each connection using UseEntraAuthentication
+        // Note: Npgsql's password provider calls GetToken for each connection
+        // Token caching should be implemented by the credential itself
+
+        var testToken = CreateValidJwtToken(EntraUser);
+        var mockCredential = new Mock<TokenCredential>();
+        mockCredential
+            .Setup(c => c.GetToken(It.IsAny<TokenRequestContext>(), It.IsAny<CancellationToken>()))
+            .Returns(new AccessToken(testToken, DateTimeOffset.UtcNow.AddHours(1)));
+
+        var baseConnectionString = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Username = null,
+            Password = null
+        }.ToString();
+
+        var builder = new NpgsqlDataSourceBuilder(baseConnectionString);
+        builder.UseEntraAuthentication(mockCredential.Object);
+
+        using var dataSource = builder.Build();
+
+        // Open multiple connections (using sync method to test sync password provider)
+        using (var connection1 = dataSource.OpenConnection())
+        {
+            connection1.State.Should().Be(System.Data.ConnectionState.Open);
+        }
+
+        using (var connection2 = dataSource.OpenConnection())
+        {
+            connection2.State.Should().Be(System.Data.ConnectionState.Open);
+        }
+
+        // Verify token was fetched for each connection
+        mockCredential.Verify(
+            c => c.GetToken(It.IsAny<TokenRequestContext>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task TokenCachingBehavior_Async()
+    {
+        // Showcases that credentials are invoked for each connection using UseEntraAuthenticationAsync
+        // Note: Npgsql's password provider calls GetToken for each connection
+        // Token caching should be implemented by the credential itself
+
+        var testToken = CreateValidJwtToken(EntraUser);
+        var mockCredential = new Mock<TokenCredential>();
+        mockCredential
+            .Setup(c => c.GetTokenAsync(It.IsAny<TokenRequestContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AccessToken(testToken, DateTimeOffset.UtcNow.AddHours(1)));
+
+        var baseConnectionString = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Username = null,
+            Password = null
+        }.ToString();
+
+        var builder = new NpgsqlDataSourceBuilder(baseConnectionString);
+        await builder.UseEntraAuthenticationAsync(mockCredential.Object);
+
+        using var dataSource = builder.Build();
+
+        // Open multiple connections
+        using (var connection1 = await dataSource.OpenConnectionAsync())
+        {
+            connection1.State.Should().Be(System.Data.ConnectionState.Open);
+        }
+
+        using (var connection2 = await dataSource.OpenConnectionAsync())
+        {
+            connection2.State.Should().Be(System.Data.ConnectionState.Open);
+        }
+
+        // Verify token was fetched for each connection
+        mockCredential.Verify(
+            c => c.GetTokenAsync(It.IsAny<TokenRequestContext>(), It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+    }
+
+    [Fact]
+    public void MultipleJwtClaimTypes()
+    {
+        // Showcases support for different JWT claim types (preferred_username, unique_name)
+
+        // Test with preferred_username claim
+        var preferredUsernameToken = CreateBase64UrlString("{\"alg\":\"RS256\",\"typ\":\"JWT\"}") + "." +
+                                    CreateBase64UrlString($"{{\"preferred_username\":\"{EntraUser}\",\"iat\":1234567890,\"exp\":9999999999}}") + "." +
+                                    "fake-signature";
+
+        var baseConnectionString = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Username = null,
+            Password = null
+        }.ToString();
+
+        var builder1 = new NpgsqlDataSourceBuilder(baseConnectionString);
+        var credential1 = new TestTokenCredential(preferredUsernameToken);
+        builder1.UseEntraAuthentication(credential1);
+
+        builder1.ConnectionStringBuilder.Username.Should().Be(EntraUser);
+
+        // Test with unique_name claim
+        var uniqueNameToken = CreateBase64UrlString("{\"alg\":\"RS256\",\"typ\":\"JWT\"}") + "." +
+                             CreateBase64UrlString($"{{\"unique_name\":\"{EntraUser}\",\"iat\":1234567890,\"exp\":9999999999}}") + "." +
+                             "fake-signature";
+
+        var builder2 = new NpgsqlDataSourceBuilder(baseConnectionString);
+        var credential2 = new TestTokenCredential(uniqueNameToken);
+        builder2.UseEntraAuthentication(credential2);
+
+        builder2.ConnectionStringBuilder.Username.Should().Be(EntraUser);
+    }
+
+    [Fact]
+    public async Task MultipleJwtClaimTypes_Async()
+    {
+        // Showcases support for different JWT claim types (preferred_username, unique_name) using async
+
+        // Test with preferred_username claim
+        var preferredUsernameToken = CreateBase64UrlString("{\"alg\":\"RS256\",\"typ\":\"JWT\"}") + "." +
+                                    CreateBase64UrlString($"{{\"preferred_username\":\"{EntraUser}\",\"iat\":1234567890,\"exp\":9999999999}}") + "." +
+                                    "fake-signature";
+
+        var baseConnectionString = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Username = null,
+            Password = null
+        }.ToString();
+
+        var builder1 = new NpgsqlDataSourceBuilder(baseConnectionString);
+        var credential1 = new TestTokenCredential(preferredUsernameToken);
+        await builder1.UseEntraAuthenticationAsync(credential1);
+
+        builder1.ConnectionStringBuilder.Username.Should().Be(EntraUser);
+
+        // Test with unique_name claim
+        var uniqueNameToken = CreateBase64UrlString("{\"alg\":\"RS256\",\"typ\":\"JWT\"}") + "." +
+                             CreateBase64UrlString($"{{\"unique_name\":\"{EntraUser}\",\"iat\":1234567890,\"exp\":9999999999}}") + "." +
+                             "fake-signature";
+
+        var builder2 = new NpgsqlDataSourceBuilder(baseConnectionString);
+        var credential2 = new TestTokenCredential(uniqueNameToken);
+        await builder2.UseEntraAuthenticationAsync(credential2);
+
+        builder2.ConnectionStringBuilder.Username.Should().Be(EntraUser);
+    }
+
+    [Fact]
+    public void PreserveExistingCredentials()
+    {
+        // Documents that building data source with existing password fails when Entra auth is configured
+        // This is by design in Npgsql - you cannot register a password provider when password is set
+
+        var testToken = CreateValidJwtToken("test@example.com");
+        var credential = new TestTokenCredential(testToken);
+
+        // Connection string already has username and password
+        var connectionStringWithCreds = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Username = "testuser",
+            Password = "testpass"
+        }.ToString();
+
+        var builder = new NpgsqlDataSourceBuilder(connectionStringWithCreds);
+        builder.UseEntraAuthentication(credential);
+        
+        // Building the data source should throw because password provider can't be registered
+        // when password is already set
+        var act = () => builder.Build();
+
+        act.Should().Throw<NotSupportedException>()
+            .WithMessage("*password provider*password*");
+    }
+
+    [Fact]
+    public async Task PreserveExistingCredentials_Async()
+    {
+        // Documents that building data source with existing password fails when Entra auth is configured (async)
+        // This is by design in Npgsql - you cannot register a password provider when password is set
+
+        var testToken = CreateValidJwtToken("test@example.com");
+        var credential = new TestTokenCredential(testToken);
+
+        // Connection string already has username and password
+        var connectionStringWithCreds = new NpgsqlConnectionStringBuilder(_connectionString)
+        {
+            Username = "testuser",
+            Password = "testpass"
+        }.ToString();
+
+        var builder = new NpgsqlDataSourceBuilder(connectionStringWithCreds);
+        await builder.UseEntraAuthenticationAsync(credential);
+        
+        // Building the data source should throw because password provider can't be registered
+        // when password is already set
+        var act = () => builder.Build();
+
+        act.Should().Throw<NotSupportedException>()
+            .WithMessage("*password provider*password*");
     }
 }

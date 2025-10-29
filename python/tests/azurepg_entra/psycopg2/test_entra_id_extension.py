@@ -21,6 +21,7 @@ from testcontainers.postgres import PostgresContainer
 
 from azurepg_entra.psycopg2.entra_connection import EntraConnection
 from tests.azurepg_entra.test_utils import (
+    TEST_USERS,
     TestTokenCredential,
     create_jwt_token_with_xms_mirid,
     create_valid_jwt_token,
@@ -50,31 +51,29 @@ def connection_dsn(postgres_container) -> str:
 def setup_entra_users(connection_dsn):
     """Setup test users with JWT tokens as passwords."""
     # Generate JWT tokens for each user
-    test_user_token = create_valid_jwt_token("test@example.com")
-    managed_identity_token = create_jwt_token_with_xms_mirid(
-        "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity"
-    )
-    fallback_user_token = create_valid_jwt_token("fallback@example.com")
+    test_user_token = create_valid_jwt_token(TEST_USERS['ENTRA_USER'])
+    managed_identity_token = create_jwt_token_with_xms_mirid(TEST_USERS['MANAGED_IDENTITY_PATH'])
+    fallback_user_token = create_valid_jwt_token(TEST_USERS['FALLBACK_USER'])
     
     setup_commands = [
-        f'CREATE USER "test@example.com" WITH PASSWORD \'{test_user_token}\';',
-        f'CREATE USER "managed-identity" WITH PASSWORD \'{managed_identity_token}\';',
-        f'CREATE USER "fallback@example.com" WITH PASSWORD \'{fallback_user_token}\';',
-        'GRANT CONNECT ON DATABASE test TO "test@example.com";',
-        'GRANT CONNECT ON DATABASE test TO "managed-identity";',
-        'GRANT CONNECT ON DATABASE test TO "fallback@example.com";',
-        'GRANT ALL PRIVILEGES ON DATABASE test TO "test@example.com";',
-        'GRANT ALL PRIVILEGES ON DATABASE test TO "managed-identity";',
-        'GRANT ALL PRIVILEGES ON DATABASE test TO "fallback@example.com";',
-        'GRANT ALL ON SCHEMA public TO "test@example.com";',
-        'GRANT ALL ON SCHEMA public TO "managed-identity";',
-        'GRANT ALL ON SCHEMA public TO "fallback@example.com";',
-        'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "test@example.com";',
-        'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "managed-identity";',
-        'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "fallback@example.com";',
-        'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "test@example.com";',
-        'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "managed-identity";',
-        'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "fallback@example.com";',
+        f'CREATE USER "{TEST_USERS["ENTRA_USER"]}" WITH PASSWORD \'{test_user_token}\';',
+        f'CREATE USER "{TEST_USERS["MANAGED_IDENTITY_NAME"]}" WITH PASSWORD \'{managed_identity_token}\';',
+        f'CREATE USER "{TEST_USERS["FALLBACK_USER"]}" WITH PASSWORD \'{fallback_user_token}\';',
+        f'GRANT CONNECT ON DATABASE test TO "{TEST_USERS["ENTRA_USER"]}";',
+        f'GRANT CONNECT ON DATABASE test TO "{TEST_USERS["MANAGED_IDENTITY_NAME"]}";',
+        f'GRANT CONNECT ON DATABASE test TO "{TEST_USERS["FALLBACK_USER"]}";',
+        f'GRANT ALL PRIVILEGES ON DATABASE test TO "{TEST_USERS["ENTRA_USER"]}";',
+        f'GRANT ALL PRIVILEGES ON DATABASE test TO "{TEST_USERS["MANAGED_IDENTITY_NAME"]}";',
+        f'GRANT ALL PRIVILEGES ON DATABASE test TO "{TEST_USERS["FALLBACK_USER"]}";',
+        f'GRANT ALL ON SCHEMA public TO "{TEST_USERS["ENTRA_USER"]}";',
+        f'GRANT ALL ON SCHEMA public TO "{TEST_USERS["MANAGED_IDENTITY_NAME"]}";',
+        f'GRANT ALL ON SCHEMA public TO "{TEST_USERS["FALLBACK_USER"]}";',
+        f'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "{TEST_USERS["ENTRA_USER"]}";',
+        f'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "{TEST_USERS["MANAGED_IDENTITY_NAME"]}";',
+        f'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "{TEST_USERS["FALLBACK_USER"]}";',
+        f'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "{TEST_USERS["ENTRA_USER"]}";',
+        f'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "{TEST_USERS["MANAGED_IDENTITY_NAME"]}";',
+        f'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "{TEST_USERS["FALLBACK_USER"]}";',
     ]
     
     with psycopg2.connect(connection_dsn) as conn:
@@ -83,9 +82,17 @@ def setup_entra_users(connection_dsn):
                 try:
                     cur.execute(sql)
                     conn.commit()
-                except Exception:
-                    # Ignore errors if user already exists
+                except Exception as e:
                     conn.rollback()
+                    # Only ignore "user already exists" error (code 42710)
+                    if hasattr(e, 'pgcode') and e.pgcode == '42710':
+                        # User already exists, this is expected in test reruns
+                        continue
+                    # Log unexpected errors to help debugging
+                    import sys
+                    print(f"Setup command failed: {sql}", file=sys.stderr)
+                    print(f"Error: {e}", file=sys.stderr)
+                    raise
 
 
 def assert_entra_connection_works(
@@ -123,24 +130,17 @@ class TestPsycopg2EntraConnection:
     """Tests for psycopg2 EntraConnection."""
     
     def test_connect_with_entra_user(self, connection_dsn, setup_entra_users):
-        """Showcases connecting with an Entra user using EntraConnection.
-        Demonstrates: End-to-end connection with token-based authentication.
-        """
-        test_token = create_valid_jwt_token("test@example.com")
-        assert_entra_connection_works(connection_dsn, test_token, "test@example.com")
+        """Showcases connecting with an Entra user using EntraConnection."""
+        test_token = create_valid_jwt_token(TEST_USERS['ENTRA_USER'])
+        assert_entra_connection_works(connection_dsn, test_token, TEST_USERS['ENTRA_USER'])
     
     def test_connect_with_managed_identity(self, connection_dsn, setup_entra_users):
-        """Showcases connecting with a managed identity using EntraConnection.
-        Demonstrates: End-to-end MI authentication with token-based authentication.
-        """
-        xms_mirid = "/subscriptions/12345/resourcegroups/mygroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/managed-identity"
-        mi_token = create_jwt_token_with_xms_mirid(xms_mirid)
-        assert_entra_connection_works(connection_dsn, mi_token, "managed-identity")
+        """Showcases connecting with a managed identity using EntraConnection."""
+        mi_token = create_jwt_token_with_xms_mirid(TEST_USERS['MANAGED_IDENTITY_PATH'])
+        assert_entra_connection_works(connection_dsn, mi_token, TEST_USERS['MANAGED_IDENTITY_NAME'])
     
     def test_connect_with_kwargs_override(self, connection_dsn, setup_entra_users):
-        """Showcases that kwargs can override DSN parameters.
-        Demonstrates: Parameter precedence (kwargs > DSN).
-        """
+        """Showcases that kwargs can override DSN parameters."""
         # Parse DSN but we'll override user via kwargs
         dsn_params = parse_dsn(connection_dsn)
         host = dsn_params['host']
@@ -150,7 +150,7 @@ class TestPsycopg2EntraConnection:
         base_dsn = f"host={host} port={port} dbname={dbname}"
         
         # Create token for fallback user
-        test_token = create_valid_jwt_token("fallback@example.com")
+        test_token = create_valid_jwt_token(TEST_USERS['FALLBACK_USER'])
         credential = TestTokenCredential(test_token)
         
         # Connect - credential will extract username from token
@@ -158,4 +158,84 @@ class TestPsycopg2EntraConnection:
             with conn.cursor() as cur:
                 cur.execute("SELECT current_user")
                 current_user = cur.fetchone()[0]
-                assert current_user == "fallback@example.com"
+                assert current_user == TEST_USERS['FALLBACK_USER']
+    
+    def test_throw_meaningful_error_for_invalid_jwt_token_format(self, connection_dsn, setup_entra_users):
+        """Showcases error handling for invalid JWT token format."""
+        invalid_token = "not.a.valid.token"
+        
+        # Parse DSN and remove user/password
+        dsn_params = parse_dsn(connection_dsn)
+        dsn_params.pop('user', None)
+        dsn_params.pop('password', None)
+        base_dsn = ' '.join([f"{k}={v}" for k, v in dsn_params.items()])
+        
+        credential = TestTokenCredential(invalid_token)
+        
+        with pytest.raises(Exception):
+            with EntraConnection(base_dsn, credential=credential):
+                pass
+    
+    def test_handle_connection_failure_with_clear_error(self, connection_dsn, setup_entra_users):
+        """Showcases error handling for connection failures."""
+        test_token = create_valid_jwt_token(TEST_USERS['ENTRA_USER'])
+        credential = TestTokenCredential(test_token)
+        
+        # Invalid connection parameters
+        dsn_params = parse_dsn(connection_dsn)
+        invalid_dsn = f"host=invalid-host port=9999 dbname={dsn_params['dbname']}"
+        
+        with pytest.raises(Exception):
+            with EntraConnection(invalid_dsn, credential=credential):
+                pass
+    
+    def test_token_caching_behavior(self, connection_dsn, setup_entra_users):
+        """Showcases that credentials are invoked for each connection.
+        
+        Token caching should be implemented by the credential itself.
+        """
+        test_token = create_valid_jwt_token(TEST_USERS['ENTRA_USER'])
+        credential = TestTokenCredential(test_token)
+        
+        # Parse DSN and remove user/password
+        dsn_params = parse_dsn(connection_dsn)
+        dsn_params.pop('user', None)
+        dsn_params.pop('password', None)
+        base_dsn = ' '.join([f"{k}={v}" for k, v in dsn_params.items()])
+        
+        # Open first connection
+        with EntraConnection(base_dsn, credential=credential) as conn1:
+            with conn1.cursor() as cur:
+                cur.execute("SELECT 1")
+                assert cur.fetchone()[0] == 1
+        
+        # Open second connection
+        with EntraConnection(base_dsn, credential=credential) as conn2:
+            with conn2.cursor() as cur:
+                cur.execute("SELECT 1")
+                assert cur.fetchone()[0] == 1
+        
+        # Verify credential was called for each connection
+        assert credential.get_call_count() == 2
+    
+    
+    def test_preserve_existing_credentials(self, connection_dsn, setup_entra_users):
+        """Documents that existing credentials in DSN are preserved when provided.
+        
+        When user and password are already set, Entra auth should not override them.
+        """
+        test_token = create_valid_jwt_token(TEST_USERS['ENTRA_USER'])
+        credential = TestTokenCredential(test_token)
+        
+        # DSN already has username and password
+        # EntraConnection should preserve them and not call credential
+        with EntraConnection(connection_dsn, credential=credential) as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT current_user, current_database()")
+                current_user, current_db = cur.fetchone()
+                
+                # Should connect with the original DSN credentials
+                assert current_db == "test"
+        
+        # Verify credential was NOT called because user/password were already provided
+        assert credential.get_call_count() == 0

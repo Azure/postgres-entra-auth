@@ -46,23 +46,28 @@
     "dotenv": "^17.2.3"
   },
   "devDependencies": {
-    "mocha": "^10.7.3",
-    "chai": "^5.1.1",
-    "sinon": "^19.0.2",
-    "eslint": "^9.12.0",
-    "prettier": "^3.3.3",
     "@eslint/js": "^9.12.0",
-    "sequelize": "^6.37.7",
+    "chai": "^5.1.1",
+    "chai-as-promised": "^8.0.2",
+    "eslint": "^9.12.0",
+    "mocha": "^10.7.3",
     "pg": "^8.16.3",
+    "prettier": "^3.3.3",
+    "sequelize": "^6.37.7",
+    "sinon": "^19.0.2",
     "testcontainers": "^10.13.0"
   },
   "peerDependencies": {
-    "sequelize": ">=6.0.0",
-    "pg": ">=8.0.0"
+    "pg": ">=8.0.0",
+    "sequelize": ">=6.0.0"
   },
   "peerDependenciesMeta": {
-    "pg": { "optional": true },
-    "sequelize": { "optional": true }
+    "pg": {
+      "optional": true
+    },
+    "sequelize": {
+      "optional": true
+    }
   },
   "files": [
     "src/",
