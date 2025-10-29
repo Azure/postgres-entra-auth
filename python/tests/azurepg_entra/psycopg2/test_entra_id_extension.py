@@ -172,7 +172,8 @@ class TestPsycopg2EntraConnection:
         
         credential = TestTokenCredential(invalid_token)
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any authentication error occurs
+        with pytest.raises(Exception):  # noqa: B017
             with EntraConnection(base_dsn, credential=credential):
                 pass
     
@@ -185,7 +186,8 @@ class TestPsycopg2EntraConnection:
         dsn_params = parse_dsn(connection_dsn)
         invalid_dsn = f"host=invalid-host port=9999 dbname={dsn_params['dbname']}"
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any connection error occurs
+        with pytest.raises(Exception):  # noqa: B017
             with EntraConnection(invalid_dsn, credential=credential):
                 pass
     

@@ -31,8 +31,8 @@ from tests.azurepg_entra.test_utils import (
     TEST_USERS,
     TestAsyncTokenCredential,
     TestTokenCredential,
-    create_jwt_token_with_xms_mirid,
     create_jwt_token_with_preferred_username,
+    create_jwt_token_with_xms_mirid,
     create_valid_jwt_token,
 )
 
@@ -172,7 +172,8 @@ class TestEntraConnection:
         test_params = {k: v for k, v in connection_params.items() if k not in ['user', 'password']}
         credential = TestTokenCredential(invalid_token)
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any authentication error occurs
+        with pytest.raises(Exception):  # noqa: B017
             with EntraConnection.connect(**test_params, credential=credential):
                 pass
     
@@ -188,7 +189,8 @@ class TestEntraConnection:
             "dbname": connection_params["dbname"]
         }
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any connection error occurs
+        with pytest.raises(Exception):  # noqa: B017
             with EntraConnection.connect(**invalid_params, credential=credential):
                 pass
     
@@ -223,9 +225,6 @@ class TestEntraConnection:
         # Note: This test verifies the token structure but doesn't connect
         # because the test database users don't match these claim types
         preferred_username_token = create_jwt_token_with_preferred_username(TEST_USERS["ENTRA_USER"])
-        
-        # Remove user and password from connection params
-        test_params = {k: v for k, v in connection_params.items() if k not in ['user', 'password']}
         
         credential = TestTokenCredential(preferred_username_token)
         
@@ -286,7 +285,8 @@ class TestAsyncEntraConnection:
         test_params = {k: v for k, v in connection_params.items() if k not in ['user', 'password']}
         credential = TestAsyncTokenCredential(invalid_token)
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any authentication error occurs
+        with pytest.raises(Exception):  # noqa: B017
             async with await AsyncEntraConnection.connect(**test_params, credential=credential):
                 pass
     
@@ -303,7 +303,8 @@ class TestAsyncEntraConnection:
             "dbname": connection_params["dbname"]
         }
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any connection error occurs
+        with pytest.raises(Exception):  # noqa: B017
             async with await AsyncEntraConnection.connect(**invalid_params, credential=credential):
                 pass
     

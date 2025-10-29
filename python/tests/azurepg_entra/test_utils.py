@@ -11,7 +11,6 @@ from datetime import datetime, timedelta, timezone
 from azure.core.credentials import AccessToken, TokenCredential
 from azure.core.credentials_async import AsyncTokenCredential
 
-
 # Test user constants
 TEST_USERS = {
     'ENTRA_USER': 'test@example.com',

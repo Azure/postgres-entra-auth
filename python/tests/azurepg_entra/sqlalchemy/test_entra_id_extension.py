@@ -39,8 +39,6 @@ from tests.azurepg_entra.test_utils import (
     TEST_USERS,
     TestTokenCredential,
     create_jwt_token_with_xms_mirid,
-    create_jwt_token_with_preferred_username,
-    create_jwt_token_with_unique_name,
     create_valid_jwt_token,
 )
 
@@ -209,7 +207,8 @@ class TestSQLAlchemyEntraConnection:
         parts = connection_url.split('@')
         base_url = f"postgresql+psycopg2://{parts[1]}"
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any authentication error occurs
+        with pytest.raises(Exception):  # noqa: B017
             engine = create_engine(base_url, connect_args={"credential": credential})
             enable_entra_authentication(engine)
             with engine.connect():
@@ -227,7 +226,8 @@ class TestSQLAlchemyEntraConnection:
         dbname = parts[1].split('/')[-1]
         invalid_url = f"postgresql+psycopg2://invalid-host:9999/{dbname}"
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any connection error occurs
+        with pytest.raises(Exception):  # noqa: B017
             engine = create_engine(invalid_url, connect_args={"credential": credential})
             enable_entra_authentication(engine)
             with engine.connect():
@@ -326,7 +326,8 @@ class TestAsyncSQLAlchemyEntraConnection:
         parts = async_connection_url.split('@')
         base_url = f"postgresql+psycopg://{parts[1]}"
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any authentication error occurs
+        with pytest.raises(Exception):  # noqa: B017
             engine = create_async_engine(base_url, connect_args={"credential": credential})
             enable_entra_authentication_async(engine)
             async with engine.connect():
@@ -344,7 +345,8 @@ class TestAsyncSQLAlchemyEntraConnection:
         dbname = parts[1].split('/')[-1]
         invalid_url = f"postgresql+psycopg://invalid-host:9999/{dbname}"
         
-        with pytest.raises(Exception):
+        # Intentionally catch broad Exception to verify any connection error occurs
+        with pytest.raises(Exception):  # noqa: B017
             engine = create_async_engine(invalid_url, connect_args={"credential": credential})
             enable_entra_authentication_async(engine)
             async with engine.connect():
