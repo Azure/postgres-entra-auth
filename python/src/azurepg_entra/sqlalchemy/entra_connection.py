@@ -63,3 +63,8 @@ def enable_entra_authentication(engine: Engine) -> None:
                 cparams["user"] = entra_creds["user"]
             if not has_password and "password" in entra_creds:
                 cparams["password"] = entra_creds["password"]
+
+        # Remove the helper-only parameter so the DBAPI (psycopg/psycopg2) doesn't see an
+        # unknown connection option and raise 'invalid connection option "credential"'.
+        if "credential" in cparams:
+            del cparams["credential"]

@@ -48,7 +48,11 @@ dev = [
   "mypy ~= 1.15",
   "ruff>=0.8.0",
   "types-psycopg2>=2.9.0",
-  "psycopg-pool>=3.1.0"
+  "psycopg-pool>=3.1.0",
+  "testcontainers[postgres]>=3.7.0",
+  "psycopg[binary]>=3.1.0",
+  "psycopg2-binary>=2.9.0",
+  "sqlalchemy>=2.0.0"
 ]
 
 # All optional dependencies combined
@@ -63,7 +67,8 @@ all = [
   "mypy ~= 1.15",
   "ruff>=0.8.0",
   "types-psycopg2>=2.9.0",
-  "psycopg-pool>=3.1.0"
+  "psycopg-pool>=3.1.0",
+  "testcontainers[postgres]>=3.7.0"
 ]
 
 [tool.setuptools]

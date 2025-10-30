@@ -6,6 +6,7 @@ import os
 
 from dotenv import load_dotenv
 from psycopg2 import pool
+
 from azurepg_entra.psycopg2 import EntraConnection
 
 # Load environment variables from .env file

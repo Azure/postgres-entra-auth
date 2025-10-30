@@ -10,6 +10,7 @@ import sys
 
 from dotenv import load_dotenv
 from psycopg_pool import AsyncConnectionPool, ConnectionPool
+
 from azurepg_entra.psycopg3 import AsyncEntraConnection, EntraConnection
 
 # Load environment variables from .env file

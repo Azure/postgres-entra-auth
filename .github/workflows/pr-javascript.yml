@@ -20,3 +20,23 @@ jobs:
       - name: ESLint
         working-directory: javascript
         run: npm run lint
+      - name: Tests
+        working-directory: javascript
+        run: |
+          mkdir -p test-results
+          npm test -- --reporter json --reporter-option output=test-results/test-results.json
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: javascript-test-results
+          path: javascript/test-results/
+          if-no-files-found: ignore
+      - name: Build package
+        working-directory: javascript
+        run: npm pack
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: javascript-package
+          path: javascript/*.tgz

@@ -83,6 +83,10 @@ try {
     $depsOk = $LASTEXITCODE -eq 0
     if (-not $depsOk) { Write-CheckResult "Install deps" $false; exit 1 } else { Write-CheckResult "Install deps" $true }
 
+    Write-Host "Installing build tool" -ForegroundColor Blue
+    & $venvPython -m pip install build | Out-Null
+    Write-CheckResult "Install build" ($LASTEXITCODE -eq 0)
+
     # Ruff
     Write-Host "Running Ruff lint" -ForegroundColor Blue
     if ($Verbose) { & $venvPython -m ruff check src tests } else { & $venvPython -m ruff check src tests *> $null }
@@ -96,21 +100,53 @@ try {
     if (Test-Path "tests") {
         Write-Host "Running pytest" -ForegroundColor Blue
         
+        # Create test results directory
+        $testResultsDir = "test-results"
+        if (-not (Test-Path $testResultsDir)) {
+            New-Item -ItemType Directory -Path $testResultsDir | Out-Null
+        }
+        
         # Use importlib mode to avoid import collisions from files with same basename
         # This allows pytest to handle multiple test_entra_id_extension.py files
         if ($Verbose) { 
-            & $venvPython -m pytest tests --import-mode=importlib -v 
+            & $venvPython -m pytest tests --import-mode=importlib -v --junit-xml="$testResultsDir/test-results.xml"
         } else { 
-            & $venvPython -m pytest tests --import-mode=importlib -q *> $null 
+            & $venvPython -m pytest tests --import-mode=importlib -q --junit-xml="$testResultsDir/test-results.xml" *> $null 
         }
         $allTestsPass = ($LASTEXITCODE -eq 0)
         Write-CheckResult "pytest" $allTestsPass
     } else {
         Write-Host "WARN No tests directory present" -ForegroundColor Yellow
     }
+
+    # Build package
+    Write-Host "Building package" -ForegroundColor Blue
+    $distDir = "dist"
+    if (Test-Path $distDir) {
+        Remove-Item -Recurse -Force $distDir
+    }
+    if ($Verbose) { 
+        & $venvPython -m build 
+    } else { 
+        & $venvPython -m build *> $null 
+    }
+    $buildOk = ($LASTEXITCODE -eq 0)
+    Write-CheckResult "build package" $buildOk
 }
 finally {
     Pop-Location
 }
 
 if (-not $OverallSuccess) { exit 1 }
+
+# Display output locations
+Write-Host ""
+Write-Host "Output locations:" -ForegroundColor Cyan
+$testResults = Join-Path $pythonRoot "test-results"
+$distPath = Join-Path $pythonRoot "dist"
+if (Test-Path $testResults) {
+    Write-Host "  Test results: $(Resolve-Path $testResults)" -ForegroundColor Gray
+}
+if (Test-Path $distPath) {
+    Write-Host "  Package: $(Resolve-Path $distPath)" -ForegroundColor Gray
+}
