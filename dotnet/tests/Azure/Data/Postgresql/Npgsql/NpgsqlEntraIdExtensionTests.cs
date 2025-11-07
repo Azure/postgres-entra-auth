@@ -434,7 +434,7 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
 
         var builder = new NpgsqlDataSourceBuilder(connectionStringWithCreds);
         builder.UseEntraAuthentication(credential);
-        
+
         // Building the data source should throw because password provider can't be registered
         // when password is already set
         var act = () => builder.Build();
@@ -461,7 +461,7 @@ public class EntraAuthenticationDockerTests : IAsyncLifetime
 
         var builder = new NpgsqlDataSourceBuilder(connectionStringWithCreds);
         await builder.UseEntraAuthenticationAsync(credential);
-        
+
         // Building the data source should throw because password provider can't be registered
         // when password is already set
         var act = () => builder.Build();
