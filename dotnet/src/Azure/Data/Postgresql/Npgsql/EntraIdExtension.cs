@@ -12,7 +12,7 @@ namespace Azure.Data.Postgresql.Npgsql;
 /// Class with extension methods for configuring Entra ID authentication with Npgsql data sources
 /// synchronously and asynchronously.
 /// </summary>
-public static class NpgsqlEntraIdExtension
+public static class EntraIdExtension
 {
     private const string AzureDatabaseForPostgresSqlScope = "https://ossrdbms-aad.database.windows.net/.default";
     private const string AzureManagementScope = "https://management.azure.com/.default";
