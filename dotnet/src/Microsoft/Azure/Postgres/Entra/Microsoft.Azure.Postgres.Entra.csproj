@@ -8,18 +8,20 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <PackageId>Microsoft.Azure.Postgres.Entra</PackageId>
-    <Authors>Arjun Narendra</Authors>
+    <Authors>Microsoft</Authors>
     <Version>1.0.0</Version>
     <PackageDescription>
       Azure Entra ID authentication extension for Npgsql driver
     </PackageDescription>
     <PackageTags>azure;entra;PostgreSQL;Npgsql</PackageTags>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Azure/postgres-entra-auth.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Azure/postgres-entra-auth</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReleaseNotes>https://github.com/Azure/postgres-entra-auth/releases</PackageReleaseNotes>
-    <Copyright>Copyright 2025-$([System.DateTime]::Now.ToString(yyyy)) Arjun Narendra</Copyright>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
