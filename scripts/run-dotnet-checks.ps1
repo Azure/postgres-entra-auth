@@ -49,12 +49,12 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "Format check failed for .NET $version" }
         
         Write-Host "4. Running tests..." -ForegroundColor Yellow
-        dotnet test "tests\Azure\Data\Postgresql\Npgsql\Azure.Data.Postgresql.Npgsql.Tests.csproj" --configuration $Configuration --framework "net$version" --logger trx --results-directory "TestResults"
+        dotnet test "tests\Microsoft\Azure\Postgres\Entra\Microsoft.Azure.Postgres.Entra.csproj" --configuration $Configuration --framework "net$version" --logger trx --results-directory "TestResults"
         if ($LASTEXITCODE -ne 0) { throw "Tests failed for .NET $version" }
         
         Write-Host "5. Packing..." -ForegroundColor Yellow
-        dotnet pack "src\Azure\Data\Postgresql\Npgsql\Azure.Data.Postgresql.Npgsql.csproj" --no-build --configuration $Configuration --output "nupkgs"
-if (    $LASTEXITCODE -ne 0) { throw "Pack failed for .NET $version" }
+        dotnet pack "src\Microsoft\Azure\Postgres\Entra\Microsoft.Azure.Postgres.Entra.csproj" --no-build --configuration $Configuration --output "nupkgs"
+        if ($LASTEXITCODE -ne 0) { throw "Pack failed for .NET $version" }
         
         Write-Host "All checks passed for .NET $version" -ForegroundColor Green
     }

@@ -1,7 +1,7 @@
 using System.Text;
 using Azure.Core;
 
-namespace Azure.Data.Postgresql.Npgsql.DockerTests;
+namespace Microsoft.Azure.Postgres.Entra;
 
 /// <summary>
 /// Test user constants used across integration tests

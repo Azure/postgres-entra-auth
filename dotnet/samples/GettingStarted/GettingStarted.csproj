@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Azure\Data\Postgresql\Npgsql\Azure.Data.Postgresql.Npgsql.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft\Azure\Postgres\Entra\Microsoft.Azure.Postgres.Entra.csproj" />
   </ItemGroup>
 
 </Project>

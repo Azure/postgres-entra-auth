@@ -1,21 +1,20 @@
 using System.Text;
 using Azure.Core;
-using Azure.Data.Postgresql.Npgsql;
 using FluentAssertions;
 using Moq;
 using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
-using static Azure.Data.Postgresql.Npgsql.DockerTests.TestJwtTokenGenerator;
-using static Azure.Data.Postgresql.Npgsql.DockerTests.TestUsers;
+using static Microsoft.Azure.Postgres.Entra.TestJwtTokenGenerator;
+using static Microsoft.Azure.Postgres.Entra.TestUsers;
 
-namespace Azure.Data.Postgresql.Npgsql.DockerTests;
+namespace Microsoft.Azure.Postgres.Entra;
 
 /// <summary>
 /// Integration tests showcasing Entra ID authentication with PostgreSQL Docker instance.
 /// These tests demonstrate token-based authentication and username extraction.
 /// </summary>
-public class EntraAuthenticationDockerTests : IAsyncLifetime
+public class NpgsqlEntraIdExtensionTests : IAsyncLifetime
 {
     private PostgreSqlContainer _postgresContainer = null!;
     private string _connectionString = null!;
