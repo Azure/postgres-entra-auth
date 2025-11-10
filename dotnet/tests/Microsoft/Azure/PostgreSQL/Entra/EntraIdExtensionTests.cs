@@ -5,10 +5,10 @@ using Moq;
 using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
-using static Microsoft.Azure.Postgres.Entra.TestJwtTokenGenerator;
-using static Microsoft.Azure.Postgres.Entra.TestUsers;
+using static Microsoft.Azure.PostgreSQL.Entra.TestJwtTokenGenerator;
+using static Microsoft.Azure.PostgreSQL.Entra.TestUsers;
 
-namespace Microsoft.Azure.Postgres.Entra;
+namespace Microsoft.Azure.PostgreSQL.Entra;
 
 /// <summary>
 /// Integration tests showcasing Entra ID authentication with PostgreSQL Docker instance.

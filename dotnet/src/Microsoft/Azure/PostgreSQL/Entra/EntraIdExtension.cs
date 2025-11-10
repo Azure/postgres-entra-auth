@@ -6,7 +6,7 @@ using Azure.Core;
 using Azure.Identity;
 using Npgsql;
 
-namespace Microsoft.Azure.Postgres.Entra;
+namespace Microsoft.Azure.PostgreSQL.Entra;
 
 /// <summary>
 /// Class with extension methods for configuring Entra ID authentication with Npgsql data sources

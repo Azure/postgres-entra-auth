@@ -18,11 +18,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft", "Microsoft", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{A542B900-C6AB-CFD7-234F-C4052AF02FF1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Postgres", "Postgres", "{4F6131AE-B29D-8566-B8CA-1A2AABE27274}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PostgreSQL", "PostgreSQL", "{4F6131AE-B29D-8566-B8CA-1A2AABE27274}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Entra", "Entra", "{93934517-16C9-C51A-8F2B-54760F50BDEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.Postgres.Entra", "src\Microsoft\Azure\Postgres\Entra\Microsoft.Azure.Postgres.Entra.csproj", "{3E862DB4-B843-4361-94B5-8CF34402B511}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.PostgreSQL.Entra", "src\Microsoft\Azure\PostgreSQL\Entra\Microsoft.Azure.PostgreSQL.Entra.csproj", "{3E862DB4-B843-4361-94B5-8CF34402B511}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
@@ -30,11 +30,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft", "Microsoft", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{AC05A953-B9EF-C104-E53F-E15EBB9C3478}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Postgres", "Postgres", "{7164C26A-6C7C-D37D-98D2-1150AFE094DD}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PostgreSQL", "PostgreSQL", "{7164C26A-6C7C-D37D-98D2-1150AFE094DD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Entra", "Entra", "{290860F1-0C73-540D-3A79-AA6C3ABBD9C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.Postgres.Entra.Tests", "tests\Microsoft\Azure\Postgres\Entra\Microsoft.Azure.Postgres.Entra.csproj", "{750B2A4F-9EF5-4CC5-8EF9-A93F4A1748F6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.PostgreSQL.Entra.Tests", "tests\Microsoft\Azure\PostgreSQL\Entra\Microsoft.Azure.PostgreSQL.Entra.csproj", "{750B2A4F-9EF5-4CC5-8EF9-A93F4A1748F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

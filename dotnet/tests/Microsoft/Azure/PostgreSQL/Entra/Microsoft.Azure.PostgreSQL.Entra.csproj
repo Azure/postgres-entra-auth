@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <AssemblyName>Microsoft.Azure.Postgres.Entra.Tests</AssemblyName>
+    <AssemblyName>Microsoft.Azure.PostgreSQL.Entra.Tests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\src\Microsoft\Azure\Postgres\Entra\Microsoft.Azure.Postgres.Entra.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\Microsoft\Azure\PostgreSQL\Entra\Microsoft.Azure.PostgreSQL.Entra.csproj" />
   </ItemGroup>
 
 </Project>

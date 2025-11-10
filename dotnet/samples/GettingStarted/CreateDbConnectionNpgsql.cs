@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 using Npgsql;
-using Microsoft.Azure.Postgres.Entra;
+using Microsoft.Azure.PostgreSQL.Entra;
 using Microsoft.Extensions.Configuration;
 
 namespace GettingStarted;
