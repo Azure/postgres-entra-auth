@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "azurepg-entra"
-version = "0.1.0"
-description = "Enable connections to Azure PostgreSQL via Entra ID and automated token refresh"
+version = "1.0.0"
+description = "Azure Entra ID authentication extension for Python database drivers"
 readme = "README.md"
 authors = [
   {name = "Arjun Narendra", email = "v-anarendra@microsoft.com"}
