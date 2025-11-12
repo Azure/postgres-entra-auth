@@ -1,7 +1,7 @@
 using System.Text;
 using Azure.Core;
 
-namespace Microsoft.Azure.PostgreSQL.Entra;
+namespace Microsoft.Azure.PostgreSQL.Auth;
 
 /// <summary>
 /// Test user constants used across integration tests

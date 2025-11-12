@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\src\Microsoft\Azure\PostgreSQL\Entra\Microsoft.Azure.PostgreSQL.Entra.csproj" />
+    <ProjectReference Include="..\..\..\..\..\src\Microsoft\Azure\PostgreSQL\Auth\Microsoft.Azure.PostgreSQL.Auth.csproj" />
   </ItemGroup>
 
 </Project>

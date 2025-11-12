@@ -32,10 +32,10 @@ GRANT USAGE ON SCHEMA public TO "myapp@domain.com";
 
 ## Usage
 
-In your program, import the namespace `Azure.Data.Postgresql.Npgsql` 
+In your program, import the namespace `Microsoft.Azure.PostgreSQL.Auth` 
 
 ```csharp
-using Azure.Data.Postgresql.Npgsql;
+using Microsoft.Azure.PostgreSQL.Auth;
 ```
 Use the extension methods as needed:
 
