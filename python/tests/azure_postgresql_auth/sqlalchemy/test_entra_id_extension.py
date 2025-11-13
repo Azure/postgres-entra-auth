@@ -31,11 +31,13 @@ try:
 except ImportError:
     psycopg2 = None
 
-from azurepg_entra.sqlalchemy.async_entra_connection import (
+from azure_postgresql_auth.sqlalchemy.async_entra_connection import (
     enable_entra_authentication_async,
 )
-from azurepg_entra.sqlalchemy.entra_connection import enable_entra_authentication
-from tests.azurepg_entra.test_utils import (
+from azure_postgresql_auth.sqlalchemy.entra_connection import (
+    enable_entra_authentication,
+)
+from tests.azure_postgresql_auth.test_utils import (
     TEST_USERS,
     TestTokenCredential,
     create_jwt_token_with_xms_mirid,

@@ -4,8 +4,8 @@ from typing import Any
 
 from azure.core.credentials import TokenCredential
 
-from azurepg_entra.core import get_entra_conninfo
-from azurepg_entra.errors import (
+from azure_postgresql_auth.core import get_entra_conninfo
+from azure_postgresql_auth.errors import (
     CredentialValueError,
     EntraConnectionValueError,
 )

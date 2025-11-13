@@ -12,8 +12,8 @@ except ImportError as e:
         "Install them with: pip install azurepg-entra[psycopg3]"
     ) from e
 
-from azurepg_entra.core import get_entra_conninfo
-from azurepg_entra.errors import (
+from azure_postgresql_auth.core import get_entra_conninfo
+from azure_postgresql_auth.errors import (
     CredentialValueError,
     EntraConnectionValueError,
 )

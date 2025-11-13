@@ -11,7 +11,7 @@ from azure.identity import CredentialUnavailableError
 from azure.identity import DefaultAzureCredential as DefaultAzureCredential
 from azure.identity.aio import DefaultAzureCredential as AsyncDefaultAzureCredential
 
-from azurepg_entra.errors import (
+from azure_postgresql_auth.errors import (
     ScopePermissionError,
     TokenDecodeError,
     UsernameExtractionError,

@@ -19,8 +19,8 @@ except ImportError as e:
 
 from testcontainers.postgres import PostgresContainer
 
-from azurepg_entra.psycopg2.entra_connection import EntraConnection
-from tests.azurepg_entra.test_utils import (
+from azure_postgresql_auth.psycopg2.entra_connection import EntraConnection
+from tests.azure_postgresql_auth.test_utils import (
     TEST_USERS,
     TestTokenCredential,
     create_jwt_token_with_xms_mirid,

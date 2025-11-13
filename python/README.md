@@ -1,4 +1,4 @@
-# azurepg-entra: Azure Database for PostgreSQL Entra ID Authentication
+# azure-postgresql-auth: Azure Database for PostgreSQL Entra ID Authentication
 
 This package provides seamless Azure Entra ID authentication for Python database drivers connecting to Azure Database for PostgreSQL. It supports both legacy and modern PostgreSQL drivers with automatic token management and connection pooling.
 
@@ -7,7 +7,7 @@ This package provides seamless Azure Entra ID authentication for Python database
 - **🔐 Azure Entra ID Authentication**: Automatic token acquisition and refresh for secure database connections
 - **🔄 Multi-Driver Support**: Works with psycopg2, psycopg3, and SQLAlchemy
 - **⚡ Connection Pooling**: Built-in support for both synchronous and asynchronous connection pools
-- **🏗️ Clean Architecture**: Simple package structure with `azurepg_entra.psycopg2`, `azurepg_entra.psycopg3`, and `azurepg_entra.sqlalchemy`
+- **🏗️ Clean Architecture**: Simple package structure with `azure_postgresql_auth.psycopg2`, `azure_postgresql_auth.psycopg3`, and `azure_postgresql_auth.sqlalchemy`
 - **🔄 Automatic Token Management**: Handles token acquisition, validation, and refresh automatically
 - **🌐 Cross-platform**: Works on Windows, Linux, and macOS
 - **📦 Flexible Installation**: Optional dependencies for different driver combinations
@@ -18,7 +18,7 @@ This package provides seamless Azure Entra ID authentication for Python database
 
 Install the core package (includes Azure Identity dependencies only):
 ```bash
-pip install azurepg-entra
+pip install azure-postgresql-auth
 ```
 
 ### Driver-Specific Installation
@@ -27,19 +27,19 @@ Choose the installation option based on which PostgreSQL drivers you need:
 
 ```bash
 # For psycopg3 (modern psycopg, recommended for new projects)
-pip install "azurepg-entra[psycopg3]"
+pip install "azure-postgresql-auth[psycopg3]"
 
 # For psycopg2 (legacy support)
-pip install "azurepg-entra[psycopg2]"
+pip install "azure-postgresql-auth[psycopg2]"
 
 # For SQLAlchemy with psycopg3 backend
-pip install "azurepg-entra[sqlalchemy]"
+pip install "azure-postgresql-auth[sqlalchemy]"
 
 # All database drivers combined
-pip install "azurepg-entra[drivers]"
+pip install "azure-postgresql-auth[drivers]"
 
 # Everything including development tools
-pip install "azurepg-entra[all]"
+pip install "azure-postgresql-auth[all]"
 ```
 
 ### Development Installation
@@ -50,7 +50,7 @@ git clone https://github.com/v-anarendra_microsoft/entra-id-integration-for-driv
 cd entra-id-integration-for-drivers/python
 
 # Install with all dependencies for development
-pip install -e ".[all]"
+pip install -e ".[dev]"
 
 # Or install specific driver combinations
 pip install -e ".[psycopg3,dev]"
@@ -86,13 +86,13 @@ cp samples/psycopg3/getting_started/.env.example samples/psycopg3/getting_starte
 # Edit .env with your Azure PostgreSQL server details
 
 # Test psycopg2 (legacy driver)
-python samples/psycopg2/getting_started/create_db_connection_psycopg2.py --mode both
+python samples/psycopg2/getting_started/create_db_connection.py --mode both
 
 # Test psycopg3 (modern driver, recommended)
-python samples/psycopg3/getting_started/create_db_connection_psycopg.py --mode both
+python samples/psycopg3/getting_started/create_db_connection.py --mode both
 
 # Test SQLAlchemy 
-python samples/sqlalchemy/getting_started/create_db_connection_sqlalchemy.py --mode both
+python samples/sqlalchemy/getting_started/create_db_connection.py --mode both
 ```
 
 ## Usage
@@ -113,13 +113,13 @@ The psycopg2 integration provides synchronous connection support with Azure Entr
 
 ### Installation
 ```bash
-pip install "azurepg-entra[psycopg2]"
+pip install "azure-postgresql-auth[psycopg2]"
 ```
 
 ### Connection Pooling (Recommended)
 
 ```python
-from azurepg_entra.psycopg2 import EntraConnection # import library
+from azure_postgresql_auth.psycopg2 import EntraConnection # import library
 from psycopg2 import pool # import to use pooling
 
 with pool.ThreadedConnectionPool(
@@ -134,7 +134,7 @@ with pool.ThreadedConnectionPool(
 ### Direct Connection
 
 ```python
-from azurepg_entra.psycopg2 import EntraConnection # import library
+from azure_postgresql_auth.psycopg2 import EntraConnection # import library
 
 with EntraConnection(
     "postgresql://your-server.postgres.database.azure.com:5432/your_database"
@@ -149,13 +149,13 @@ psycopg3 is the modern, actively developed PostgreSQL driver with native async s
 
 ### Installation
 ```bash
-pip install "azurepg-entra[psycopg3]"
+pip install "azure-postgresql-auth[psycopg3]"
 ```
 
 ### Synchronous Connection
 
 ```python
-from azurepg_entra.psycopg3 import EntraConnection # import library
+from azure_postgresql_auth.psycopg3 import EntraConnection # import library
 from psycopg_pool import ConnectionPool # import to use pooling
 
 with ConnectionPool(
@@ -169,7 +169,7 @@ with ConnectionPool(
 ### Asynchronous Connection
 
 ```python
-from azurepg_entra.psycopg3 import AsyncEntraConnection # import library
+from azure_postgresql_auth.psycopg3 import AsyncEntraConnection # import library
 from psycopg_pool import AsyncConnectionPool # import to use pooling 
 
 async with AsyncConnectionPool(
@@ -190,14 +190,14 @@ SQLAlchemy integration uses psycopg3 as the backend driver with automatic Entra 
 
 ### Installation
 ```bash
-pip install "azurepg-entra[sqlalchemy]"
+pip install "azure-postgresql-auth[sqlalchemy]"
 ```
 
 ### Synchronous Engine
 
 ```python
 from sqlalchemy import create_engine
-from azurepg_entra.sqlalchemy import enable_entra_authentication # import library
+from azure_postgresql_auth.sqlalchemy import enable_entra_authentication # import library
 
 with create_engine("postgresql+psycopg://your-server.postgres.database.azure.com/your_database") as engine:
     # Enable Entra ID authentication
@@ -215,7 +215,7 @@ with create_engine("postgresql+psycopg://your-server.postgres.database.azure.com
 
 ```python
 from sqlalchemy.ext.asyncio import create_async_engine
-from azurepg_entra.sqlalchemy import enable_entra_authentication_async # import library
+from azure_postgresql_auth.sqlalchemy import enable_entra_authentication_async # import library
 
 async with create_async_engine("postgresql+psycopg://your-server.postgres.database.azure.com/your_database") as engine:
     # Enable Entra ID authentication for async

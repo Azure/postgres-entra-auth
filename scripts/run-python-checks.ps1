@@ -46,9 +46,19 @@ function Write-CheckResult {
 }
 
 $OverallSuccess = $true
-$pythonRoot = Join-Path (Get-Location) "python"
+
+# Find repository root (look for python/ directory up to 2 levels up)
+$scriptDir = $PSScriptRoot
+$repoRoot = $scriptDir
+$pythonRoot = Join-Path $repoRoot "python"
+
 if (-not (Test-Path $pythonRoot)) {
-    Write-Host "python/ directory not found" -ForegroundColor Red
+    $repoRoot = Split-Path $scriptDir -Parent
+    $pythonRoot = Join-Path $repoRoot "python"
+}
+
+if (-not (Test-Path $pythonRoot)) {
+    Write-Host "python/ directory not found. Run from repository root or scripts/ directory." -ForegroundColor Red
     exit 1
 }
 
@@ -94,7 +104,7 @@ try {
 
     # mypy
     Write-Host "Running mypy type check" -ForegroundColor Blue
-    if ($Verbose) { & $venvPython -m mypy src/azurepg_entra/ } else { & $venvPython -m mypy src/azurepg_entra/ *> $null }
+    if ($Verbose) { & $venvPython -m mypy src/azure_postgresql_auth/ } else { & $venvPython -m mypy src/azure_postgresql_auth/ *> $null }
     Write-CheckResult "mypy" ($LASTEXITCODE -eq 0)
 
     if (Test-Path "tests") {

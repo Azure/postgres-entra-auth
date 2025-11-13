@@ -25,9 +25,9 @@ except ImportError as e:
 
 from testcontainers.postgres import PostgresContainer
 
-from azurepg_entra.psycopg3.async_entra_connection import AsyncEntraConnection
-from azurepg_entra.psycopg3.entra_connection import EntraConnection
-from tests.azurepg_entra.test_utils import (
+from azure_postgresql_auth.psycopg3.async_entra_connection import AsyncEntraConnection
+from azure_postgresql_auth.psycopg3.entra_connection import EntraConnection
+from tests.azure_postgresql_auth.test_utils import (
     TEST_USERS,
     TestAsyncTokenCredential,
     TestTokenCredential,
