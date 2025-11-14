@@ -8,6 +8,8 @@ import asyncio
 import os
 import sys
 
+from azure.identity import DefaultAzureCredential
+from azure.identity.aio import DefaultAzureCredential as AsyncDefaultAzureCredential
 from dotenv import load_dotenv
 from psycopg_pool import AsyncConnectionPool, ConnectionPool
 
@@ -33,6 +35,7 @@ def main_sync() -> None:
         max_size=5,
         open=False,
         connection_class=EntraConnection,
+        kwargs={"credential": DefaultAzureCredential()},
     )
     with pool, pool.connection() as conn, conn.cursor() as cur:
         cur.execute("SELECT now()")
@@ -54,6 +57,7 @@ async def main_async() -> None:
         max_size=5,
         open=False,
         connection_class=AsyncEntraConnection,
+        kwargs={"credential": AsyncDefaultAzureCredential()},
     )
     async with pool, pool.connection() as conn, conn.cursor() as cur:
         await cur.execute("SELECT now()")

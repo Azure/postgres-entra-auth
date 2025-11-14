@@ -33,7 +33,7 @@ class EntraConnection(Connection):
         Parameters:
             *args: Positional arguments to be forwarded to the parent connection method.
             **kwargs: Keyword arguments including:
-                - credential (TokenCredential, optional): Azure credential for token acquisition.
+                - credential (TokenCredential, required): Azure credential for token acquisition.
                 - user (str, optional): Database username. If not provided, extracted from Entra token.
                 - password (str, optional): Database password. If not provided, uses Entra access token.
 
@@ -45,9 +45,9 @@ class EntraConnection(Connection):
             EntraConnectionValueError: If Entra connection credentials cannot be retrieved
         """
         credential = kwargs.pop("credential", None)
-        if credential and not isinstance(credential, (TokenCredential)):
+        if not isinstance(credential, (TokenCredential)):
             raise CredentialValueError(
-                "credential must be a TokenCredential for sync connections"
+                "credential is required and must be a TokenCredential for sync connections"
             )
 
         # Check if we need to acquire Entra authentication info
