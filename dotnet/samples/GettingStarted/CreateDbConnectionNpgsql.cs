@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Identity;
 using Npgsql;
 using Microsoft.Azure.PostgreSQL.Auth;
 using Microsoft.Extensions.Configuration;
@@ -48,15 +49,15 @@ public class CreateDbConnectionNpgsql
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 
         // Here, we use the appropriate extension method provided by NpgsqlDataSourceBuilderExtensions.cs
-        // to enable Entra Authentication. This will handle token acquisition, username extraction, and
-        // token refresh as needed. 
+        // to enable Entra Authentication. This will handle username extraction and token refresh as needed.
+        var credential = new DefaultAzureCredential();
         if (useAsync)
         {
-            await dataSourceBuilder.UseEntraAuthenticationAsync();
+            await dataSourceBuilder.UseEntraAuthenticationAsync(credential);
         }
         else
         {
-            dataSourceBuilder.UseEntraAuthentication();
+            dataSourceBuilder.UseEntraAuthentication(credential);
         }
 
         using var dataSource = dataSourceBuilder.Build();
