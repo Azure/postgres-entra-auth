@@ -119,25 +119,33 @@ pip install "azure-postgresql-auth[psycopg2]"
 ### Connection Pooling (Recommended)
 
 ```python
-from azure_postgresql_auth.psycopg2 import EntraConnection # import library
-from psycopg2 import pool # import to use pooling
+from azure_postgresql_auth.psycopg2 import EntraConnection
+from azure.identity import DefaultAzureCredential
+from psycopg2 import pool
+from functools import partial
+
+# Create a connection factory with the credential bound
+credential = DefaultAzureCredential()
+connection_factory = partial(EntraConnection, credential=credential)
 
 with pool.ThreadedConnectionPool(
     minconn=1,
     maxconn=5,
     host="your-server.postgres.database.azure.com",
     database="your_database",
-    connection_factory=EntraConnection
+    connection_factory=connection_factory  # Pass the factory with credential bound
 ) as connection_pool:
 ```
 
 ### Direct Connection
 
 ```python
-from azure_postgresql_auth.psycopg2 import EntraConnection # import library
+from azure_postgresql_auth.psycopg2 import EntraConnection
+from azure.identity import DefaultAzureCredential
 
 with EntraConnection(
-    "postgresql://your-server.postgres.database.azure.com:5432/your_database"
+    "postgresql://your-server.postgres.database.azure.com:5432/your_database",
+    credential=DefaultAzureCredential()  # required
 ) as conn
 ```
 
@@ -155,28 +163,32 @@ pip install "azure-postgresql-auth[psycopg3]"
 ### Synchronous Connection
 
 ```python
-from azure_postgresql_auth.psycopg3 import EntraConnection # import library
-from psycopg_pool import ConnectionPool # import to use pooling
+from azure_postgresql_auth.psycopg3 import EntraConnection
+from azure.identity import DefaultAzureCredential
+from psycopg_pool import ConnectionPool
 
 with ConnectionPool(
     conninfo="postgresql://your-server.postgres.database.azure.com:5432/your_database",
     connection_class=EntraConnection,
-    min_size=1,   # keep at least 1 connection always open
-    max_size=5,   # allow up to 5 concurrent connections
+    kwargs={"credential": DefaultAzureCredential()},  # required
+    min_size=1,
+    max_size=5,
 ) as pool
 ```
 
 ### Asynchronous Connection
 
 ```python
-from azure_postgresql_auth.psycopg3 import AsyncEntraConnection # import library
-from psycopg_pool import AsyncConnectionPool # import to use pooling 
+from azure_postgresql_auth.psycopg3 import AsyncEntraConnection
+from azure.identity.aio import DefaultAzureCredential
+from psycopg_pool import AsyncConnectionPool
 
 async with AsyncConnectionPool(
     conninfo="postgresql://your-server.postgres.database.azure.com:5432/your_database",
     connection_class=AsyncEntraConnection,
-    min_size=1,   # keep at least 1 connection always open
-    max_size=5,   # allow up to 5 concurrent connections
+    kwargs={"credential": DefaultAzureCredential()},  # required
+    min_size=1,
+    max_size=5,
 ) as pool
 ```
 
@@ -197,9 +209,13 @@ pip install "azure-postgresql-auth[sqlalchemy]"
 
 ```python
 from sqlalchemy import create_engine
-from azure_postgresql_auth.sqlalchemy import enable_entra_authentication # import library
+from azure_postgresql_auth.sqlalchemy import enable_entra_authentication
+from azure.identity import DefaultAzureCredential
 
-with create_engine("postgresql+psycopg://your-server.postgres.database.azure.com/your_database") as engine:
+with create_engine(
+    "postgresql+psycopg://your-server.postgres.database.azure.com/your_database",
+    connect_args={"credential": DefaultAzureCredential()}  # required
+) as engine:
     # Enable Entra ID authentication
     enable_entra_authentication(engine)
     
@@ -215,9 +231,13 @@ with create_engine("postgresql+psycopg://your-server.postgres.database.azure.com
 
 ```python
 from sqlalchemy.ext.asyncio import create_async_engine
-from azure_postgresql_auth.sqlalchemy import enable_entra_authentication_async # import library
+from azure_postgresql_auth.sqlalchemy import enable_entra_authentication_async
+from azure.identity import DefaultAzureCredential
 
-async with create_async_engine("postgresql+psycopg://your-server.postgres.database.azure.com/your_database") as engine:
+async with create_async_engine(
+    "postgresql+psycopg://your-server.postgres.database.azure.com/your_database",
+    connect_args={"credential": DefaultAzureCredential()}  # required
+) as engine:
     # Enable Entra ID authentication for async
     enable_entra_authentication_async(engine)
     
@@ -233,7 +253,7 @@ async with create_async_engine("postgresql+psycopg://your-server.postgres.databa
 
 ### Authentication Flow
 
-1. **Token Acquisition**: Uses Azure Identity libraries (`DefaultAzureCredential` by default) to acquire access tokens from Azure Entra ID
+1. **Token Acquisition**: Uses Azure Identity credentials (you must pass `DefaultAzureCredential()` or another credential explicitly) to acquire access tokens from Azure Entra ID
 2. **Automatic Refresh**: Tokens are automatically refreshed before each new database connection  
 3. **Secure Transport**: Tokens are passed as passwords in PostgreSQL connection strings over SSL
 4. **Server Validation**: Azure Database for PostgreSQL validates the token and establishes the authenticated connection

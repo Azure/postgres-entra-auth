@@ -3,7 +3,9 @@ Sample demonstrating psycopg2 connection with synchronous Entra ID authenticatio
 """
 
 import os
+from functools import partial
 
+from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 from psycopg2 import pool
 
@@ -21,12 +23,17 @@ def main() -> None:
     # authentication tokens are properly managed and refreshed so that each connection uses a valid token.
     #
     # For more details, see: https://www.psycopg.org/docs/advanced.html#subclassing-connection
+    
+    # Create a connection factory with the credential bound using functools.partial
+    credential = DefaultAzureCredential()
+    connection_factory = partial(EntraConnection, credential=credential)
+    
     connection_pool = pool.ThreadedConnectionPool(
         minconn=1,
         maxconn=5,
         host=SERVER,
         database=DATABASE,
-        connection_factory=EntraConnection,
+        connection_factory=connection_factory,
     )
 
     conn = connection_pool.getconn()

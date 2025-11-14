@@ -41,6 +41,8 @@ Use the extension methods as needed:
 
 ### Asynchronous Authentication (Recommended)
 ```csharp
+using Azure.Identity;
+
 // Fill in with connection information to Azure PostgreSQL server
 // Note: No username/password in connection string - authentication handled by Entra ID
 var connectionString = "Host=myserver.postgres.database.azure.com;Database=mydb;Port=5432;SSL Mode=Require;";
@@ -51,17 +53,21 @@ var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 // - Detect the current Azure identity (managed identity, service principal, or user)
 // - Acquire a PostgreSQL-scoped access token
 // - Configure the connection to use token-based authentication
-await dataSourceBuilder.UseEntraAuthenticationAsync();
+var credential = new DefaultAzureCredential();
+await dataSourceBuilder.UseEntraAuthenticationAsync(credential);
 ```
 
 ### Synchronous Authentication
 ```csharp
+using Azure.Identity;
+
 // Fill in with connection information to Azure PostgreSQL server
 var connectionString = "Host=myserver.postgres.database.azure.com;Database=mydb;Port=5432;SSL Mode=Require;";
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 
 // Use the sync extension method for Entra authentication
-dataSourceBuilder.UseEntraAuthentication();
+var credential = new DefaultAzureCredential();
+dataSourceBuilder.UseEntraAuthentication(credential);
 ```
 
 ## Benefits
