@@ -1,4 +1,4 @@
-# postgres-entra-auth: Azure Database for PostgreSQL Entra ID Authentication (JavaScript)
+# azure-postgresql-auth: Azure Database for PostgreSQL Entra ID Authentication (JavaScript)
 
 This package provides seamless Azure Entra ID authentication for JavaScript/Node.js database drivers connecting to Azure Database for PostgreSQL. It supports both Sequelize ORM and the native pg driver with automatic token management and connection pooling.
 
@@ -16,21 +16,21 @@ This package provides seamless Azure Entra ID authentication for JavaScript/Node
 
 Install the package:
 ```bash
-npm install postgres-entra-auth
+npm install azure-postgresql-auth
 ```
 
 ### With Sequelize
 
 Install Sequelize and the pg driver as peer dependencies:
 ```bash
-npm install postgres-entra-auth sequelize pg
+npm install azure-postgresql-auth sequelize pg
 ```
 
 ### With pg Driver
 
 Install the pg driver as a peer dependency:
 ```bash
-npm install postgres-entra-auth pg
+npm install azure-postgresql-auth pg
 ```
 
 ## Quick Start
@@ -60,7 +60,7 @@ The pg driver integration provides connection support with Azure Entra ID authen
 
 ```javascript
 import { Pool } from 'pg';
-import { getPassword } from 'postgres-entra-auth';
+import { getPassword } from 'azure-postgresql-auth';
 
 const pool = new Pool({
   host: process.env.PGHOST,
@@ -86,7 +86,7 @@ Sequelize integration uses pg as the backend driver with automatic Entra ID auth
 
 ```javascript
 import { Sequelize } from 'sequelize';
-import { configureEntraIdAuth } from 'postgres-entra-auth';
+import { configureEntraIdAuth } from 'azure-postgresql-auth';
 
 const sequelize = new Sequelize({
   dialect: 'postgres',

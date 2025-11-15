@@ -1,5 +1,5 @@
 import pg from "pg";
-import { getEntraTokenPassword } from 'postgres-entra-auth';
+import { getEntraTokenPassword } from 'azure-postgresql-auth';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

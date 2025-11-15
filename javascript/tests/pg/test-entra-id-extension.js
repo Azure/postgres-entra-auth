@@ -8,7 +8,7 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { GenericContainer } from 'testcontainers';
 import pg from 'pg';
-import { getEntraTokenPassword } from '../../src/entra_id_extension.js';
+import { getEntraTokenPassword } from '../../src/entra-id-extension.js';
 import { createValidJwtToken, createJwtTokenWithAppId, TestTokenCredential, TEST_USERS } from '../test-utils.js';
 
 chai.use(chaiAsPromised);

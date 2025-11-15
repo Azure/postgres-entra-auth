@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { Sequelize } from 'sequelize';
-import { configureEntraIdAuth } from 'postgres-entra-auth';
+import { configureEntraIdAuth } from 'azure-postgresql-auth';
 
 // Load .env from the same directory as this script
 dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '.env') });
