@@ -1,11 +1,11 @@
 {
-  "name": "postgres-entra-auth",
+  "name": "azure-postgresql-auth",
   "version": "1.0.0",
   "description": "Azure Entra ID authentication extension for PostgreSQL in JavaScript",
   "type": "module",
-  "main": "src/entra_id_extension.js",
+  "main": "src/entra-connection.js",
   "exports": {
-    ".": "./src/entra_id_extension.js"
+    ".": "./src/entra-connection.js"
   },
   "scripts": {
     "test": "mocha 'tests/**/*.js' --timeout 10000",

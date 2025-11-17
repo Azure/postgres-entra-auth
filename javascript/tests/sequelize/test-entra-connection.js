@@ -9,7 +9,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { Sequelize } from 'sequelize';
 import { GenericContainer } from 'testcontainers';
 import pg from 'pg';
-import { configureEntraIdAuth } from '../../src/entra_id_extension.js';
+import { configureEntraIdAuth } from '../../src/entra-connection.js';
 import { createValidJwtToken, createJwtTokenWithAppId, TestTokenCredential, TEST_USERS } from '../test-utils.js';
 
 chai.use(chaiAsPromised);
