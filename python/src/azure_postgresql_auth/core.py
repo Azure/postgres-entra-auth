@@ -7,7 +7,6 @@ from typing import Any, cast
 from azure.core.credentials import TokenCredential
 from azure.core.credentials_async import AsyncTokenCredential
 from azure.core.exceptions import ClientAuthenticationError
-from azure.identity import CredentialUnavailableError
 
 from azure_postgresql_auth.errors import (
     ScopePermissionError,
@@ -140,7 +139,7 @@ def get_entra_conninfo(credential: TokenCredential) -> dict[str, str]:
         # Fall back to management scope ONLY to discover username
         try:
             mgmt_token = get_entra_token(credential, AZURE_MANAGEMENT_SCOPE)
-        except (CredentialUnavailableError, ClientAuthenticationError) as e:
+        except ClientAuthenticationError as e:
             raise ScopePermissionError(
                 "Failed to acquire token from management scope"
             ) from e
@@ -207,7 +206,7 @@ async def get_entra_conninfo_async(
     if not username:
         try:
             mgmt_token = await get_entra_token_async(credential, AZURE_MANAGEMENT_SCOPE)
-        except (CredentialUnavailableError, ClientAuthenticationError) as e:
+        except ClientAuthenticationError as e:
             raise ScopePermissionError(
                 "Failed to acquire token from management scope"
             ) from e
