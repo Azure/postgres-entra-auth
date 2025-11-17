@@ -1,14 +1,15 @@
 /**
- * Integration tests for node-postgres (pg) with Entra ID authentication.
- * These tests demonstrate token-based authentication for node-postgres with PostgreSQL Docker instance.
+ * Integration tests for Sequelize with Entra ID authentication.
+ * These tests demonstrate token-based authentication for Sequelize with PostgreSQL Docker instance.
  */
 
 import { describe, it, before, after } from 'mocha';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import { Sequelize } from 'sequelize';
 import { GenericContainer } from 'testcontainers';
 import pg from 'pg';
-import { getEntraTokenPassword } from '../../src/entra-id-extension.js';
+import { configureEntraIdAuth } from '../../src/entra-connection.js';
 import { createValidJwtToken, createJwtTokenWithAppId, TestTokenCredential, TEST_USERS } from '../test-utils.js';
 
 chai.use(chaiAsPromised);
@@ -16,14 +17,14 @@ const { expect } = chai;
 
 const { Client } = pg;
 
-describe('node-postgres Entra ID Integration Tests', function() {
+describe('Sequelize Entra ID Integration Tests', function() {
     this.timeout(60000); // 60 seconds for container operations
     
     let container;
     let connectionConfig;
     
     before(async function() {
-        // Start PostgreSQL container. Testcontainers already ensures PostgreSQL readiness.
+        // Start PostgreSQL container
         console.log('Starting PostgreSQL container...');
         container = await new GenericContainer('postgres:15')
             .withEnvironment({
@@ -110,83 +111,61 @@ describe('node-postgres Entra ID Integration Tests', function() {
     }
     
     /**
-     * Helper to test node-postgres Entra connection works end-to-end
+     * Helper to test Sequelize Entra connection works end-to-end
      */
-    async function assertPgEntraWorks(baseConfig, token, expectedUsername) {
+    async function assertSequelizeEntraWorks(baseConfig, token, expectedUsername) {
         const credential = new TestTokenCredential(token);
         
-        // Get token
-        const accessToken = await getEntraTokenPassword(credential);
-        
-        // Decode token to get username
-        const claims = decodeJwtToken(accessToken);
-        const username = claims.upn || claims.appid;
-        
-        // Create client with Entra credentials
-        const client = new Client({
+        // Create Sequelize instance without username/password
+        const sequelize = new Sequelize({
             ...baseConfig,
-            user: username,
-            password: accessToken
+            logging: false
         });
         
-        await client.connect();
+        // Configure Entra authentication
+        configureEntraIdAuth(sequelize, credential);
         
-        // Verify connection
-        const result = await client.query('SELECT current_user, current_database()');
-        const { current_user, current_database } = result.rows[0];
+        // Test connection
+        await sequelize.authenticate();
+        
+        // Verify we're connected as the expected user
+        const [results] = await sequelize.query('SELECT current_user, current_database()');
+        const { current_user, current_database } = results[0];
         
         expect(current_user).to.equal(expectedUsername);
         expect(current_database).to.equal('test');
         
-        await client.end();
-    }
-    
-    /**
-     * Decode JWT token to extract user information
-     */
-    function decodeJwtToken(token) {
-        try {
-            const parts = token.split('.');
-            if (parts.length !== 3) {
-                throw new Error('Invalid JWT token format');
-            }
-            
-            const payload = parts[1];
-            const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
-            const decodedPayload = Buffer.from(paddedPayload, 'base64url').toString('utf8');
-            
-            return JSON.parse(decodedPayload);
-        } catch {
-            // Token decoding failed - this shouldn't happen in tests with valid tokens
-            return null;
-        }
+        await sequelize.close();
     }
     
     describe('Basic Connection Tests', function() {
-        it('should connect with Entra user using getEntraTokenPassword', async function() {
+        it('should connect with Entra user using configureEntraIdAuth', async function() {
             const baseConfig = {
+                dialect: 'postgres',
                 host: connectionConfig.host,
                 port: connectionConfig.port,
                 database: connectionConfig.database
             };
             
             const testToken = createValidJwtToken(TEST_USERS.ENTRA_USER);
-            await assertPgEntraWorks(baseConfig, testToken, TEST_USERS.ENTRA_USER);
+            await assertSequelizeEntraWorks(baseConfig, testToken, TEST_USERS.ENTRA_USER);
         });
         
-        it('should connect with managed identity using getEntraTokenPassword', async function() {
+        it('should connect with managed identity using configureEntraIdAuth', async function() {
             const baseConfig = {
+                dialect: 'postgres',
                 host: connectionConfig.host,
                 port: connectionConfig.port,
                 database: connectionConfig.database
             };
             
             const miToken = createJwtTokenWithAppId('managed-identity-app-id');
-            await assertPgEntraWorks(baseConfig, miToken, 'managed-identity-app-id');
+            await assertSequelizeEntraWorks(baseConfig, miToken, 'managed-identity-app-id');
         });
         
         it('should throw meaningful error for invalid JWT token format', async function() {
             const baseConfig = {
+                dialect: 'postgres',
                 host: connectionConfig.host,
                 port: connectionConfig.port,
                 database: connectionConfig.database
@@ -194,26 +173,28 @@ describe('node-postgres Entra ID Integration Tests', function() {
             
             const invalidToken = 'not.a.valid.token';
 
-            await expect(assertPgEntraWorks(baseConfig, invalidToken, TEST_USERS.ENTRA_USER))
+            await expect(assertSequelizeEntraWorks(baseConfig, invalidToken, TEST_USERS.ENTRA_USER))
                 .to.be.rejectedWith(Error);
         });
 
         it('should handle connection failure with clear error', async function() {
             const baseConfig = {
+                dialect: 'postgres',
                 host: 'invalid-host',
                 port: 9999,
                 database: connectionConfig.database
             };
 
             const testToken = createValidJwtToken(TEST_USERS.ENTRA_USER);
-            await expect(assertPgEntraWorks(baseConfig, testToken, TEST_USERS.ENTRA_USER))
+            await expect(assertSequelizeEntraWorks(baseConfig, testToken, TEST_USERS.ENTRA_USER))
                 .to.be.rejectedWith(Error);
         });
     });
     
-    describe('Token Caching Tests', function() {
+    describe('Token Caching and Credential Tests', function() {
         it('should invoke credential for each connection (token caching behavior)', async function() {
             const baseConfig = {
+                dialect: 'postgres',
                 host: connectionConfig.host,
                 port: connectionConfig.port,
                 database: connectionConfig.database
@@ -222,41 +203,55 @@ describe('node-postgres Entra ID Integration Tests', function() {
             const testToken = createValidJwtToken(TEST_USERS.ENTRA_USER);
             const credential = new TestTokenCredential(testToken);
             
-            // First connection
-            const accessToken1 = await getEntraTokenPassword(credential);
-            const claims1 = decodeJwtToken(accessToken1);
-            const username1 = claims1.upn || claims1.appid;
-            
-            const client1 = new Client({
-                ...baseConfig,
-                user: username1,
-                password: accessToken1
-            });
-            
-            await client1.connect();
-            await client1.query('SELECT 1');
-            await client1.end();
+            // Create first Sequelize instance
+            const sequelize1 = new Sequelize({ ...baseConfig, logging: false });
+            configureEntraIdAuth(sequelize1, credential);
+            await sequelize1.authenticate();
+            await sequelize1.close();
             
             const callsAfterFirst = credential.getCallCount();
             
-            // Second connection
-            const accessToken2 = await getEntraTokenPassword(credential);
-            const claims2 = decodeJwtToken(accessToken2);
-            const username2 = claims2.upn || claims2.appid;
+            // Create second Sequelize instance
+            const sequelize2 = new Sequelize({ ...baseConfig, logging: false });
+            configureEntraIdAuth(sequelize2, credential);
+            await sequelize2.authenticate();
+            await sequelize2.close();
             
-            const client2 = new Client({
-                ...baseConfig,
-                user: username2,
-                password: accessToken2
-            });
+            // Verify credential was called for both connections
+            // Each authenticate() may result in multiple beforeConnect hooks
+            expect(credential.getCallCount()).to.be.greaterThan(callsAfterFirst);
+            expect(callsAfterFirst).to.be.greaterThan(0);
+        });
+        
+        it('should override existing credentials with Entra auth', async function() {
+            // Documents that configureEntraIdAuth overrides existing username/password
+            // This is different from .NET where it throws NotSupportedException
+            const testToken = createValidJwtToken(TEST_USERS.ENTRA_USER);
+            const credential = new TestTokenCredential(testToken);
             
-            await client2.connect();
-            await client2.query('SELECT 1');
-            await client2.end();
+            const configWithCreds = {
+                dialect: 'postgres',
+                host: connectionConfig.host,
+                port: connectionConfig.port,
+                database: connectionConfig.database,
+                username: connectionConfig.user,  // Will be overridden
+                password: connectionConfig.password  // Will be overridden
+            };
             
-            // Verify credential was called for each connection
-            expect(credential.getCallCount()).to.equal(2);
-            expect(callsAfterFirst).to.equal(1);
+            const sequelize = new Sequelize({ ...configWithCreds, logging: false });
+            configureEntraIdAuth(sequelize, credential);
+            
+            // The beforeConnect hook overrides the credentials with Entra token
+            await sequelize.authenticate();
+            
+            // Verify we're connected as the Entra user, not the original postgres user
+            const [results] = await sequelize.query('SELECT current_user');
+            const { current_user } = results[0];
+            
+            expect(current_user).to.equal(TEST_USERS.ENTRA_USER);
+            expect(current_user).to.not.equal(connectionConfig.user);
+            
+            await sequelize.close();
         });
     });
 });
