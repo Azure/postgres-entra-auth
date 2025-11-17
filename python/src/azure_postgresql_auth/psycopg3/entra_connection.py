@@ -45,7 +45,7 @@ class EntraConnection(Connection):
             EntraConnectionValueError: If Entra connection credentials cannot be retrieved
         """
         credential = kwargs.pop("credential", None)
-        if not isinstance(credential, (TokenCredential)):
+        if credential is None or not isinstance(credential, (TokenCredential)):
             raise CredentialValueError(
                 "credential is required and must be a TokenCredential for sync connections"
             )

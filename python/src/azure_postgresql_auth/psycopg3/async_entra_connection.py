@@ -45,7 +45,7 @@ class AsyncEntraConnection(AsyncConnection):
             EntraConnectionValueError: If Entra connection credentials are invalid.
         """
         credential = kwargs.pop("credential", None)
-        if not isinstance(credential, (AsyncTokenCredential)):
+        if credential is None or not isinstance(credential, (AsyncTokenCredential)):
             raise CredentialValueError(
                 "credential is required and must be an AsyncTokenCredential for async connections"
             )

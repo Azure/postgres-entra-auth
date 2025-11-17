@@ -28,12 +28,11 @@ def enable_entra_authentication_async(engine: AsyncEngine) -> None:
 
     This function registers an event listener that automatically provides
     Entra ID credentials for each database connection. A credential must be
-    provided via connect_args when creating the engine. Event handlers do not 
+    provided via connect_args when creating the engine. Event handlers do not
     support async behavior so the token fetching will still be synchronous.
 
     Args:
         engine: The async SQLAlchemy Engine to enable Entra authentication for
-        
     Example:
         engine = create_async_engine(
             "postgresql+psycopg://server/db",
@@ -53,12 +52,11 @@ def enable_entra_authentication_async(engine: AsyncEngine) -> None:
             EntraConnectionValueError: If Entra connection credentials cannot be retrieved
         """
         credential = cparams.get("credential", None)
-        if not isinstance(credential, (TokenCredential)):
+        if credential is None or not isinstance(credential, (TokenCredential)):
             raise CredentialValueError(
                 "credential is required and must be a TokenCredential. "
                 "Pass it via connect_args={'credential': DefaultAzureCredential()}"
             )
-        
         # Check if credentials are already present
         has_user = "user" in cparams
         has_password = "password" in cparams

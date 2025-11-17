@@ -30,7 +30,6 @@ def enable_entra_authentication(engine: Engine) -> None:
 
     Args:
         engine: The SQLAlchemy Engine to enable Entra authentication for
-        
     Example:
         engine = create_engine(
             "postgresql+psycopg://server/db",
@@ -50,12 +49,11 @@ def enable_entra_authentication(engine: Engine) -> None:
             EntraConnectionValueError: If Entra connection credentials cannot be retrieved
         """
         credential = cparams.get("credential", None)
-        if not isinstance(credential, (TokenCredential)):
+        if credential is None or not isinstance(credential, (TokenCredential)):
             raise CredentialValueError(
                 "credential is required and must be a TokenCredential. "
                 "Pass it via connect_args={'credential': DefaultAzureCredential()}"
             )
-        
         # Check if credentials are already present
         has_user = "user" in cparams
         has_password = "password" in cparams
