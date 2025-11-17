@@ -63,9 +63,6 @@
     "sequelize": ">=6.0.0"
   },
   "peerDependenciesMeta": {
-    "@azure/identity": {
-      "optional": false
-    },
     "pg": {
       "optional": true
     },
