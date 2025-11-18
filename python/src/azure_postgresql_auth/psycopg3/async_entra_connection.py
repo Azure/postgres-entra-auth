@@ -34,7 +34,7 @@ class AsyncEntraConnection(AsyncConnection):
         Parameters:
             *args: Positional arguments to be forwarded to the parent connection method.
             **kwargs: Keyword arguments including:
-                - credential (AsyncTokenCredential, optional): Async Azure credential for token acquisition.
+                - credential (AsyncTokenCredential, required): Async Azure credential for token acquisition.
                 - user (str, optional): Database username. If not provided, extracted from Entra token.
                 - password (str, optional): Database password. If not provided, uses Entra access token.
 
@@ -46,9 +46,9 @@ class AsyncEntraConnection(AsyncConnection):
             EntraConnectionValueError: If Entra connection credentials are invalid.
         """
         credential = kwargs.pop("credential", None)
-        if credential and not isinstance(credential, (AsyncTokenCredential)):
+        if credential is None or not isinstance(credential, (AsyncTokenCredential)):
             raise CredentialValueError(
-                "credential must be an AsyncTokenCredential for async connections"
+                "credential is required and must be an AsyncTokenCredential for async connections"
             )
 
         # Check if we need to acquire Entra authentication info

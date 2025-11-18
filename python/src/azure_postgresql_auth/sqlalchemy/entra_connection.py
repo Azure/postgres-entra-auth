@@ -26,10 +26,17 @@ def enable_entra_authentication(engine: Engine) -> None:
     Enable Azure Entra ID authentication for a SQLAlchemy engine.
 
     This function registers an event listener that automatically provides
-    Entra ID credentials for each database connection if they are not already set.
+    Entra ID credentials for each database connection. A credential must be
+    provided via connect_args when creating the engine.
 
     Args:
         engine: The SQLAlchemy Engine to enable Entra authentication for
+    Example:
+        engine = create_engine(
+            "postgresql+psycopg://server/db",
+            connect_args={"credential": DefaultAzureCredential()}
+        )
+        enable_entra_authentication(engine)
     """
 
     @event.listens_for(engine, "do_connect")
@@ -43,9 +50,10 @@ def enable_entra_authentication(engine: Engine) -> None:
             EntraConnectionValueError: If Entra connection credentials cannot be retrieved
         """
         credential = cparams.get("credential", None)
-        if credential and not isinstance(credential, (TokenCredential)):
+        if credential is None or not isinstance(credential, (TokenCredential)):
             raise CredentialValueError(
-                "credential must be a TokenCredential for sync connections"
+                "credential is required and must be a TokenCredential. "
+                "Pass it via connect_args={'credential': DefaultAzureCredential()}"
             )
         # Check if credentials are already present
         has_user = "user" in cparams
