@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import pg from "pg";
 import { getEntraTokenPassword } from 'azure-postgresql-auth';
 import dotenv from 'dotenv';
