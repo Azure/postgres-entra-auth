@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 """
 Sample demonstrating both synchronous and asynchronous SQLAlchemy connections
 with Azure Entra ID authentication for Azure PostgreSQL.
