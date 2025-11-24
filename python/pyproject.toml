@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Azure Entra ID authentication extension for Python database drivers"
 readme = "README.md"
 authors = [
-  {name = "Arjun Narendra", email = "v-anarendra@microsoft.com"}
+  {name = "Microsoft"},
 ]
 license = {text = "MIT"}
 requires-python = ">=3.10"
