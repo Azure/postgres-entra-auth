@@ -1,35 +1,14 @@
-# Contributing to this repository
+# Contributing
 
-We welcome contributions from the community.
+This project welcomes contributions and suggestions. Most contributions require you to
+agree to a Contributor License Agreement (CLA) declaring that you have the right to,
+and actually do, grant us the rights to use your contribution. For details, visit
+https://cla.microsoft.com.
 
-## 🐞 Reporting Issues
+When you submit a pull request, a CLA-bot will automatically determine whether you need
+to provide a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the
+instructions provided by the bot. You will only need to do this once across all repositories using our CLA.
 
-When reporting a bug, please include:
-
-- A clear description of the issue.
-- Steps to reproduce.
-- Expected vs. actual behavior.
-- Screenshots or logs if applicable.
-
-### Finding Existing Issues
-
-Before filing a new issue, please search our [issues](https://github.com/v-anarendra_microsoft/entra-id-integration-for-drivers/issues/) to check if it already exists.
-
-If you do find an existing issue, please include your own feedback in the discussion.
-Instead of posting "me too", upvote the issue with 👍, as this better helps us prioritize popular issues and avoids spamming people subscribing to the issue.
-
-## 🧑‍💻 Coding Guidelines
-
-Follow the existing code style.
-Write clear, concise commit messages.
-Include comments where necessary.
-Add tests for new features or bug fixes.
-Keep pull requests focused and minimal.
-
-## 🔁 Pull Request Process
-
-Ensure your branch is up to date with main.
-Open a pull request with a clear title and description.
-Link related issues (e.g., Closes #123).
-Wait for review and address feedback.
-Once approved, your PR will be merged.
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
+or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.

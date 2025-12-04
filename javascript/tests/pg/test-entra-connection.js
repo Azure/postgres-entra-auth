@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 /**
  * Integration tests for node-postgres (pg) with Entra ID authentication.
  * These tests demonstrate token-based authentication for node-postgres with PostgreSQL Docker instance.

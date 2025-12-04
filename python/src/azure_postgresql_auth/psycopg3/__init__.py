@@ -1,4 +1,5 @@
-# Copyright (c) Microsoft. All rights reserved.
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
 """
 Psycopg3 support for Azure Entra ID authentication with Azure Database for PostgreSQL.

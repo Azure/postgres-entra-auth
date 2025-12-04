@@ -27,7 +27,7 @@
     "node-postgres",
     "nodejs"
   ],
-  "author": "Arjun Narendra",
+  "author": "Microsoft",
   "license": "MIT",
   "repository": {
     "type": "git",

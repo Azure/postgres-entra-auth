@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 /**
  * Integration tests for Sequelize with Entra ID authentication.
  * These tests demonstrate token-based authentication for Sequelize with PostgreSQL Docker instance.

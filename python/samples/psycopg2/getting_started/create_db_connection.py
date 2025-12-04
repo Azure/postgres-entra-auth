@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 """
 Sample demonstrating psycopg2 connection with synchronous Entra ID authentication for Azure PostgreSQL.
 """
