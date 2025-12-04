@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { DefaultAzureCredential } from '@azure/identity';
-
 /**
  * Configure Sequelize instance to use Entra ID authentication
  * @param {Sequelize} sequelizeInstance - The Sequelize instance to configure
