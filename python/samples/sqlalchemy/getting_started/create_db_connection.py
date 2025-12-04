@@ -11,6 +11,7 @@ import asyncio
 import os
 import sys
 
+from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -30,7 +31,10 @@ def main_sync() -> None:
     """Synchronous connection example using SQLAlchemy with Entra ID authentication."""
 
     # Create a synchronous engine
-    engine = create_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
+    engine = create_engine(
+        f"postgresql+psycopg://{SERVER}/{DATABASE}",
+        connect_args={"credential": DefaultAzureCredential()},
+    )
 
     # We add an event listener to the engine to enable synchronous Entra authentication
     # for database access. This event listener is triggered whenever the connection pool
@@ -53,7 +57,10 @@ async def main_async() -> None:
     """Asynchronous connection example using SQLAlchemy with Entra ID authentication."""
 
     # Create an asynchronous engine
-    engine = create_async_engine(f"postgresql+psycopg://{SERVER}/{DATABASE}")
+    engine = create_async_engine(
+        f"postgresql+psycopg://{SERVER}/{DATABASE}",
+        connect_args={"credential": DefaultAzureCredential()},
+    )
 
     # We add an event listener to the engine to enable asynchronous Entra authentication
     # for database access. This event listener is triggered whenever the connection pool

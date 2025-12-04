@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { Sequelize } from 'sequelize';
+import { DefaultAzureCredential } from '@azure/identity';
 import { configureEntraIdAuth } from 'azure-postgresql-auth';
 
 // Load .env from the same directory as this script
@@ -24,7 +25,8 @@ async function main() {
     });
     
     // Configure Entra ID authentication
-    configureEntraIdAuth(sequelize);
+    const credential = new DefaultAzureCredential();
+    configureEntraIdAuth(sequelize, credential);
     
     await sequelize.authenticate();   // triggers beforeConnect and opens a connection
     console.log('✅ Sequelize connection established successfully with Entra ID!');

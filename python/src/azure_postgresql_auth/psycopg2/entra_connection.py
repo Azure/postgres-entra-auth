@@ -30,8 +30,7 @@ class EntraConnection(connection):
     Parameters:
         dsn (str): PostgreSQL connection string (Data Source Name).
         **kwargs: Additional keyword arguments including:
-            - credential (TokenCredential, optional): Azure credential for token acquisition.
-              If None, DefaultAzureCredential() is used.
+            - credential (TokenCredential, required): Azure credential for token acquisition.
             - user (str, optional): Database username. If not provided, extracted from Entra token.
             - password (str, optional): Database password. If not provided, uses Entra access token.
 
@@ -45,9 +44,9 @@ class EntraConnection(connection):
         dsn_params = parse_dsn(dsn) if dsn else {}
 
         credential = kwargs.pop("credential", None)
-        if credential and not isinstance(credential, (TokenCredential)):
+        if credential is None or not isinstance(credential, (TokenCredential)):
             raise CredentialValueError(
-                "credential must be a TokenCredential for sync connections"
+                "credential is required and must be a TokenCredential for sync connections"
             )
 
         # Check if user and password are already provided

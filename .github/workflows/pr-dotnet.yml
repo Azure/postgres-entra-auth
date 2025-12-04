@@ -36,11 +36,11 @@ jobs:
       - name: Test
         if: ${{ always() }}
         working-directory: dotnet
-        run: dotnet test tests/Azure/Data/Postgresql/Npgsql/Azure.Data.Postgresql.Npgsql.Tests.csproj --configuration Release --logger trx --results-directory TestResults
+        run: dotnet test tests/Microsoft/Azure/PostgreSQL/Auth/Microsoft.Azure.PostgreSQL.Auth.csproj --configuration Release --framework net${{ matrix.dotnet-version }} --logger trx --results-directory TestResults
         
       - name: Pack
         working-directory: dotnet
-        run: dotnet pack --no-build --configuration Release --output nupkgs
+        run: dotnet pack src/Microsoft/Azure/PostgreSQL/Auth/Microsoft.Azure.PostgreSQL.Auth.csproj --no-build --configuration Release --output nupkgs
         
       - name: Upload test results
         if: always()

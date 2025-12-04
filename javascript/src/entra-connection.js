@@ -1,15 +1,17 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { DefaultAzureCredential } from '@azure/identity';
-
 /**
  * Configure Sequelize instance to use Entra ID authentication
  * @param {Sequelize} sequelizeInstance - The Sequelize instance to configure
+ * @param {Object} credential - The TokenCredential to use for authentication
  * @param {Object} options - Configuration options
  * @param {string} options.fallbackUsername - Fallback username if token doesn't contain upn/appid
  */
-export function configureEntraIdAuth(sequelizeInstance, credential = null, options = {}) {
+export function configureEntraIdAuth(sequelizeInstance, credential, options = {}) {
+    if (!credential) {
+        throw new Error('credential is required');
+    }
     const { fallbackUsername } = options;
 
     // Runs before every new connection is created by Sequelize
@@ -31,10 +33,14 @@ export function configureEntraIdAuth(sequelizeInstance, credential = null, optio
 
 /**
  * Get cached Entra ID access token or fetch a new one
+ * @param {Object} credential - The TokenCredential to use for authentication
+ * @param {string} scope - The scope to request the token for
  * @returns {Promise<string>} - The access token
  */
-export async function getEntraTokenPassword(credential = null, scope = "https://ossrdbms-aad.database.windows.net/.default") {
-  credential = credential || new DefaultAzureCredential();
+export async function getEntraTokenPassword(credential, scope = "https://ossrdbms-aad.database.windows.net/.default") {
+    if (!credential) {
+        throw new Error('credential is required');
+    }
     try {
         const t = await credential.getToken(scope);
         if (!t?.token) {throw new Error('Failed to acquire Entra ID token');}

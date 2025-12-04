@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import pg from "pg";
+import { DefaultAzureCredential } from '@azure/identity';
 import { getEntraTokenPassword } from 'azure-postgresql-auth';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
@@ -14,12 +15,14 @@ dotenv.config({ path: join(__dirname, '.env') });
 
 const { Pool } = pg;
 
+const credential = new DefaultAzureCredential();
+
 const pool = new Pool({
   host: process.env.PGHOST,
   port: Number(process.env.PGPORT || 5432),
   database: process.env.PGDATABASE,
   user: process.env.PGUSER,            
-  password: getEntraTokenPassword,      
+  password: () => getEntraTokenPassword(credential),      
   ssl: {
     rejectUnauthorized: false // or true with proper certificates
   },         

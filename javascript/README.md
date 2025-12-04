@@ -60,14 +60,17 @@ The pg driver integration provides connection support with Azure Entra ID authen
 
 ```javascript
 import { Pool } from 'pg';
-import { getPassword } from 'azure-postgresql-auth';
+import { DefaultAzureCredential } from '@azure/identity';
+import { getEntraTokenPassword } from 'azure-postgresql-auth';
+
+const credential = new DefaultAzureCredential();
 
 const pool = new Pool({
   host: process.env.PGHOST,
   port: process.env.PGPORT,
   database: process.env.PGDATABASE,
   user: process.env.PGUSER,
-  password: getPassword, // Dynamic password function
+  password: () => getEntraTokenPassword(credential), // Dynamic password function
   ssl: { rejectUnauthorized: true },
   connectionTimeoutMillis: 10000,
   idleTimeoutMillis: 30000,
@@ -86,7 +89,10 @@ Sequelize integration uses pg as the backend driver with automatic Entra ID auth
 
 ```javascript
 import { Sequelize } from 'sequelize';
+import { DefaultAzureCredential } from '@azure/identity';
 import { configureEntraIdAuth } from 'azure-postgresql-auth';
+
+const credential = new DefaultAzureCredential();
 
 const sequelize = new Sequelize({
   dialect: 'postgres',
@@ -104,7 +110,7 @@ const sequelize = new Sequelize({
 });
 
 // Configure Entra ID authentication
-configureEntraIdAuth(sequelize, {
+configureEntraIdAuth(sequelize, credential, {
   fallbackUsername: 'my-db-user' // Optional fallback username
 });
 
@@ -138,11 +144,16 @@ GRANT ALL PRIVILEGES ON DATABASE your_database TO "your-user@your-domain.com";
 
 **Connection Timeouts**
 ```javascript
+import { DefaultAzureCredential } from '@azure/identity';
+import { getEntraTokenPassword } from 'postgres-entra-auth';
+
+const credential = new DefaultAzureCredential();
+
 // Increase connection timeout for slow networks
 const pool = new Pool({
   host: process.env.PGHOST,
   database: process.env.PGDATABASE,
-  password: getPassword,
+  password: () => getEntraTokenPassword(credential),
   connectionTimeoutMillis: 30000  // 30 seconds instead of default
 });
 ```
