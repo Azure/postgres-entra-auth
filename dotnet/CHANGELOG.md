@@ -2,11 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0]
+The format is based on keep-a-changelog principles and this project adheres to semantic versioning.
 
-### Features
-- Npgsql extension libraries to connect to Azure PostgreSQL via Entra ID
-- A sample console application that uses Npgsql and Entra ID token refresh to connect to a Azure PostgreSQL DB and query it
-- Integration tests for Entra ID authentication functionality
+## [Unreleased]
+
+### Added
+- Implement Entra ID authentication libraries for Npgsql to connect to a PostgreSQL database
+
+### Changed
+- 
+
+### Fixed
+- Remove dependency on DefaultAzureCredential in source library
+
+### Deprecated
+- 
+
+### Removed
+- 
+
+### Security
+- 
 
 ---

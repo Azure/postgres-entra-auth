@@ -2,11 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0]
+The format is based on keep-a-changelog principles and this project adheres to semantic versioning.
 
-### Features
-- JavaScript package to connect to Azure PostgreSQL via Entra ID
-- A sample console application that uses node-postgres and sequelize with Entra ID token refresh to connect to a Azure PostgreSQL DB and query it
-- Integration tests for Entra ID authentication functionality
+## [Unreleased]
+
+### Added
+- Implement Entra ID authentication libraries for node-postgres and sequelize to connect to a PostgreSQL database
+
+### Changed
+- 
+
+### Fixed
+- Remove dependency on DefaultAzureCredential in source library
+
+### Deprecated
+- 
+
+### Removed
+- 
+
+### Security
+- 
 
 ---

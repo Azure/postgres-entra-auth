@@ -2,16 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.1]
+The format is based on keep-a-changelog principles and this project adheres to semantic versioning.
+
+## [Unreleased]
+
+### Added
+-
 
 ### Changed
-- Updated package author to Microsoft
+- 
 
-## [1.0.0]
+### Fixed
+- Remove dependency on DefaultAzureCredential in source library
 
-### Features
-- Python package to connect to Azure PostgreSQL via Entra ID
-- A sample console application that uses psycopg2, psycopg3, and sqlalchemy with Entra ID token refresh to connect to a Azure PostgreSQL DB and query it
-- Integration tests for Entra ID authentication functionality
+### Deprecated
+- 
+
+### Removed
+- 
+
+### Security
+- 
 
 ---
+
+## [1.0.1] - 2025-11-26
+
+### Changed
+- Update author to Microsoft
+
+---
+
+## [1.0.0] - 2025-11-14
+
+### Added
+- Initial public release.
